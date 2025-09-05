@@ -22,6 +22,9 @@ case $1 in
     	docker compose -f docker/docker-compose.yaml down
     	;;
   	*)
+		# Allow container to forward graphical displays to host
+		xhost +
+
     	printInfo "Loading the marsrover-ct container..."
     	docker compose -f docker/docker-compose.yaml up -d
 
