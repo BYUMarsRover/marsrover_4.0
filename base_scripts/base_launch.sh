@@ -25,30 +25,33 @@ if [ $(docker ps | grep mapproxy | wc -l) -eq 0 ]; then
     docker run -p 8080:8080 -d -t -v ~/mapproxy:/mapproxy danielsnider/mapproxy
 fi
 
+# Allow container to forward graphical displays to host
+xhost +
+
 # Launch the specified mission configuration over SSH
 case $mission in
     "autonomy")
         printInfo "Setting up the autonomy mission..."
         # This envsubst allows for the use of environment variables in the tmuxp config
-        envsubst < tmuxp/autonomy/base_launch.yaml > tmuxp/tmp/base_launch.yaml
+        cd $script_dir && envsubst < tmuxp/autonomy/base_launch.yaml > tmuxp/tmp/base_launch.yaml
         docker exec marsrover-ct tmuxp load -d /home/marsrover-docker/.tmuxp/base_launch.yaml
         ;;
     "servicing")
         printInfo "Setting up the servicing mission..."
         # This envsubst allows for the use of environment variables in the tmuxp config
-        envsubst < tmuxp/servicing/base_launch.yaml > tmuxp/tmp/base_launch.yaml
+        cd $script_dir && envsubst < tmuxp/servicing/base_launch.yaml > tmuxp/tmp/base_launch.yaml
         docker exec marsrover-ct tmuxp load -d /home/marsrover-docker/.tmuxp/base_launch.yaml
         ;;
     "delivery")
         printInfo "Setting up the delivery mission..."
         # This envsubst allows for the use of environment variables in the tmuxp config
-        envsubst < tmuxp/delivery/base_launch.yaml > tmuxp/tmp/base_launch.yaml
+        cd $script_dir && envsubst < tmuxp/delivery/base_launch.yaml > tmuxp/tmp/base_launch.yaml
         docker exec marsrover-ct tmuxp load -d /home/marsrover-docker/.tmuxp/base_launch.yaml
         ;;
     "science")
         printInfo "Setting up the science mission..."
         # This envsubst allows for the use of environment variables in the tmuxp config
-        envsubst < tmuxp/science/base_launch.yaml > tmuxp/tmp/base_launch.yaml
+        cd $script_dir && envsubst < tmuxp/science/base_launch.yaml > tmuxp/tmp/base_launch.yaml
         docker exec marsrover-ct tmuxp load -d /home/marsrover-docker/.tmuxp/base_launch.yaml
         ;;
     *)

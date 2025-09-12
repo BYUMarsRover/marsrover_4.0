@@ -26,7 +26,7 @@ fi
 # Send tmux commands to the rover over SSH
 printInfo "Setting up the 'zed_launch' tmux session..."
 # This envsubst allows for the use of environment variables in the tmuxp config
-envsubst < tmuxp/autonomy/zed_launch.yaml > tmuxp/tmp/zed_launch.yaml
+cd $script_dir && envsubst < tmuxp/autonomy/zed_launch.yaml > tmuxp/tmp/zed_launch.yaml
 scp tmuxp/tmp/zed_launch.yaml $ROVER_USERNAME@$ROVER_IP_ADDRESS:~/marsrover_2.0/base_scripts/tmuxp/tmp/
 ssh $ROVER_USERNAME@$ROVER_IP_ADDRESS \
     "docker exec zed-ct tmuxp load -d /home/marsrover-zed/.tmuxp/zed_launch.yaml"
