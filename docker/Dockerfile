@@ -77,6 +77,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-zed-msgs \
     # Open-source robotic arm manipulation platform - Nelson Durrant, Jun 2025
     ros-humble-moveit \
+    # Joy package for science control - Jacob Gunnell, Sept 2025
+    ros-humble-joy-linux \
     && rm -rf /var/lib/apt/lists/*
 
 # Install architecture-specific ROS packages
