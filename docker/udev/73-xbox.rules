@@ -10,10 +10,11 @@ ATTRS{idVendor}=="045e", ATTRS{product}=="Inno GamePad..", \
 ATTRS{serial}=="0000001", MODE:="0777", \
 SYMLINK+="rover/js/xbox_360"
 
+# Pink science controller
 KERNEL=="js*", SUBSYSTEM=="input", \
 ATTRS{idVendor}=="045e", ATTRS{product}=="Controller", \
 ATTRS{serial}=="0000001", MODE:="0777", \
-SYMLINK+="rover/js/xbox_360"
+SYMLINK+="rover/js/xbox_360_science"
 
 # Xbox One Controller
 KERNEL=="js*", SUBSYSTEM=="input", \
