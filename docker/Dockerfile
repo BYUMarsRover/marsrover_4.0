@@ -129,6 +129,7 @@ USER $NAME
 COPY --chown=$NAME:$NAME firmware /home/$NAME/firmware
 RUN pio pkg install --project-dir /home/$NAME/firmware/mega_pio \
     && pio pkg install --project-dir /home/$NAME/firmware/nano_pio \
+    && pio pkg install --project-dir /home/$NAME/firmware/nano_science_pio \
     && rm -rf /home/$NAME/firmware
 
 # Set up automatic ROS2 sourcing and colorized output - Nelson Durrant, Oct 2024
