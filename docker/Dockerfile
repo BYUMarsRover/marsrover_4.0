@@ -136,4 +136,7 @@ RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc \
     && echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ~/.bashrc \
     && touch ~/.hushlogin
 
+# Set tmux to use color - Jacob Gunnell, Sept 2025
+RUN echo "set -g default-terminal \"screen-256color\"" >> ~/.tmux.conf
+
 CMD ["bash"]
