@@ -57,6 +57,17 @@
         </constraints>
       </ode>
     </physics>
+
+    <gui>
+      <camera name="user_camera">
+        <pose>-57.5 -52.5 60 0 0.2 1.1</pose>
+      </camera>
+    </gui>
+
+    <include>
+      <uri>model://urc_aruco_1</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
     
   </world>
 </sdf>

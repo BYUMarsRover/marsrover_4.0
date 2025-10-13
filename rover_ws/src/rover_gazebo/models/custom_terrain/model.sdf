@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="custom_terrain">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <heightmap>
+            <uri>model://custom_terrain/materials/textures/heightmap.png</uri>
+            <size>500 500 10</size>
+            <pos>0 0 0</pos>
+          </heightmap>
+        </geometry>
+      </collision>
+
+      <visual name="visual">
+        <geometry>
+          <heightmap>
+            <uri>model://custom_terrain/materials/textures/heightmap.png</uri>
+            <size>500 500 10</size>
+            <pos>0 0 0</pos>
+          </heightmap>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grass</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
