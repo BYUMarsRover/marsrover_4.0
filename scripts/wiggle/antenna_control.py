@@ -8,9 +8,9 @@ Original file is located at
 """
 
 '''
-Title: Wiggle.py
-Date updated: 4/16/2024
-Authors: Michael Gasaway and Elias Clawson
+Title: antenna_control.py
+Date updated: 10/23/2025
+Authors: Michael Gasaway, Elias Clawson, and Jacob Gunnell
 Description: This code will control the antenna from a secondary base station. It contains two modes, automatic and manual.
 Theoretically, manual mode should never be used. It is only included as a backup should the automatic mode fail.
 
@@ -29,8 +29,8 @@ IMPORTANT NOTES:
 '''
 
 import serial # To allow communication with the arduino
+from easysnmp import Session # To allow SNMP communication with the Rocket M900
 import time # Allows us to create delays and timers
-import subprocess #allows us to talk to the modem
 import tkinter as tk # Allows us to create a simple gui
 from tkinter import messagebox # Allows messages on the gui
 import matplotlib.pyplot as plt # Creates plots
@@ -49,29 +49,28 @@ simulate_mode = False ### Change this depending on if the rover is connected or 
 current_marker = 90
 current_angle = 90  # Declare as a global variable
 status_message = "Booting Up"
-signal = "-100"
+signal = -np.inf
 direction = "Center"
 step_size = 20 # This can be used to increase or decrease the step size on the rover
 max_signal_strength = -90
 max_angle = 0
 max_angles = []
 calibrate_start = True
-start_automatic_mode = True
 wait_time = round(((step_size * 0.03) + 2) * 1000) #Time for the antenna to move and settle
 # Plotting Globals for matplot
 signal_strengths = {angle: -100 for angle in range (0, 180, 1)} # Dictionary to map angles to signal
 signal_history = deque(maxlen=120)  # Store values (FIFO behavior) - change maxlen if we need more data
 #Globals specific to automatic mode
-right_signal_strength = -100
-left_signal_strength = -100
-center_signal_strength = -100
-current_signal_strength = -100
+right_signal_strength = -np.inf
+left_signal_strength = -np.inf
+center_signal_strength = -np.inf
+current_signal_strength = -np.inf
 snmp_delay = 10000 #min sample time based on our testing
 last_octets_in = 0 # For calculating throughput
 last_octets_out = 0 # for calculating throughput
 timeout_counter = 0 #for calculating throughput
-incoming_throughput_history = deque(maxlen=120)  # Store incoming throughput values
-outgoing_throughput_history = deque(maxlen=120)  # Store outgoing throughput values
+rx_rate_history = deque(maxlen=120)  # Store incoming throughput values
+tx_rate_history = deque(maxlen=120)  # Store outgoing throughput values
 prev_bytes_received = 0  # Store the last recorded incoming throughput
 prev_bytes_sent = 0  # Store the last recorded outgoing throughput
 snmp_data = {} #Creates a dictionary to map the snmp data oids (keys) to their values to allow easy access
@@ -81,6 +80,14 @@ last_time = 0
 port = '/dev/ttyUSB0'  # Replace with your actual port
 baudrate = 9600
 
+
+# Initialize the SNMP session
+snmpSession = Session(
+    hostname="192.168.1.30", 
+    community="public", 
+    version=1, 
+    timeout=1, retries=1
+)
 
 #Attempts to reconnect the serial port should it come disconnected
 def reconnect_serial():
@@ -116,8 +123,8 @@ except serial.SerialException as e:
 def send_command(command):
     """Send a command to Arduino and receive a response."""
     try:
-        ser.flushInput()
-        ser.flushOutput()
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
         ser.write(f"{command}\n".encode())
         time.sleep(0.05)
         if ser.in_waiting:
@@ -140,7 +147,7 @@ def read_serial_data():
             #print("Received:", message)
 
             # find battery voltage using regular expressions
-            battery_match = re.search(r"Battery Voltage: (\d+\.\d+)", message)
+            battery_match = re.search(r"Battery Voltage: (\d+\.\d+)", message) # Don't like this. TODO: change
             if battery_match:
                 #print(f"Battery Voltage: {battery_match.group(1)}")  # Debugging purposes
                 battery_voltage = float(battery_match.group(1))  # Convert string to float
@@ -173,152 +180,114 @@ def snmp():
     global simulate_mode
     global snmp_data
     global timeout_counter
-    global incoming_throughput_history
-    global outgoing_throughput_history
+    global rx_rate_history
+    global tx_rate_history
     global prev_bytes_received
     global prev_bytes_sent
     global last_recorded_incoming
     global last_recorded_outgoing
     global last_time
 
-    #local variables for the snmp query
-    base_oid = ".1.3.6.1.4.1.41112.1.4.7.1"
+    # OIDs for SNMP query
+    #base_oid = ".1.3.6.1.4.1.41112.1.4.7.1"
     signal_strength_oid = "iso.3.6.1.4.1.41112.1.4.7.1.3.1.104.114.81.132.178.5"
-    throughput_in_oid = "iso.3.6.1.4.1.41112.1.4.7.1.13.1.104.114.81.132.178.5"
-    throughput_out_oid = "iso.3.6.1.4.1.41112.1.4.7.1.14.1.104.114.81.132.178.5"
-    timer_oid = "iso.3.6.1.4.1.41112.1.4.7.1.15.1.104.114.81.132.178.5"
+    #rx_throughput_oid = "iso.3.6.1.4.1.41112.1.4.7.1.13.1.104.114.81.132.178.5"
+    #tx_throughput_oid = "iso.3.6.1.4.1.41112.1.4.7.1.14.1.104.114.81.132.178.5"
+    #timer_oid = "iso.3.6.1.4.1.41112.1.4.7.1.15.1.104.114.81.132.178.5"
     distance_oid = "iso.3.6.1.4.1.41112.1.4.7.1.6.1.104.114.81.132.178.5"
-    community_string = "public"
-    ip_address = "192.168.1.30"
+    rx_rate_oid = "iso.3.6.1.4.1.41112.1.4.7.1.12.1.104.114.81.132.178.5"
+    tx_rate_oid = "iso.3.6.1.4.1.41112.1.4.7.1.11.1.104.114.81.132.178.5"
 
-    #Allows us to run the code without getting data from the antenna
+    # Allows us to run the code without getting data from the antenna
     if simulate_mode:
         simulated_signal  = random.randint(-100, 0) #Just generates a random int variable, not necessary just to see how the graphs are working
         simulated_result = f"SNMP SIMULATION MODE: {simulated_signal}"
         return simulated_result
 
-    command = [
-        "snmpwalk",
-        "-v1",
-        "-c", community_string,
-        "-r", "1", # Number of tries it does to reach the modem - Has to be at least 1
-        "-t", "0.1", # How long it waits between retries
-        ip_address,
-        base_oid
-    ]
-    #This should catch if the rover is disconnected
+    # Request SNMP data
     try:
-        result = subprocess.check_output(command, stderr=subprocess.PIPE, universal_newlines=True)
-        print(f"snmp() returned: {result}")
-
-        data_received = False
-
-        pattern = re.compile(r"(\S+)\s+=\s+\S+\s*:\s*(.+)") #Creates a pattern for splitting the resulting lines
-        for line in result.splitlines():
-            match = pattern.match(line) #matches each line to the pattern
-            if match:
-                data_received = True
-                oid, value = match.groups() #when they match, it labels each group with oid and value
-                #print(f"OID: {oid}, Value: {value}")# For debugging purposes
-                snmp_data[oid] = value
-                #return snmp_data
-                #THIS IS REPLACING get_signal_strength()
-                #print(f"snmp() returned: {signal}")
-            elif not data_received:
-                print(f"Is the Rover on?")
-
-        # Finished loop and never got data
-        if not data_received:
-            print("No data received")
-            status_message = "Is the Rover on? No signal"
-            signal = "Disconnected"
-            update_signal_strength_display(signal)
-            status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-            status_label.update_idletasks()  # Force GUI update
-            signal_history.append(-100)
-            incoming_throughput_history.append(0)
-            outgoing_throughput_history.append(0)
-            root.after(1000, snmp) #call snmp every 1 second
-            return None
-
-        signal = snmp_data.get(signal_strength_oid, -100)
-        signal = int(signal)
-        #print(f"SIGNAL STRENGTH: {signal}")
+        # Signal strength
+        signal = int(snmpSession.get(signal_strength_oid).value) or -np.inf
         signal_history.append(signal)
         update_signal_strength_display(signal)
 
-        data_received = False
+        # Distance
+        distance = int(snmpSession.get(distance_oid).value) or np.inf
+        distance_label.config(text=f"Distance: {distance} m")
+        distance_label.update_idletasks()
 
-        #Get the distance
-        distance = snmp_data.get(distance_oid, -100)
-        distance = int(distance)
-        #print(f"THE ROVER IS {distance} AWAY")
-        #distance_label.config(text=f"The rover is {distance}m away")
-        distance_label.update_idletasks()  # Force GUI update
+        # Rx/Tx Rates TODO: fix this to dynamically calculate from bytes sent/received and time. Current OID gives MCS max rate which isn't useful
+        rx_rate = int(snmpSession.get(rx_rate_oid).value) or 0
+        rx_rate_history.append(rx_rate)
+        tx_rate = int(snmpSession.get(tx_rate_oid).value) or 0
+        tx_rate_history.append(tx_rate)
+        throughput_label.config(text=f"Rx: {rx_rate} B/s, Tx: {tx_rate} B/s")
+        throughput_label.update_idletasks()
 
+        # # Throughput and timer handling (kept for reference; delete when you implement dynamic rate calculation with easysnmp)
+        # timeout_counter += 1
+        # timer_input = snmp_data.get(timer_oid, snmp_data.get(timer_oid.replace('iso', '1') if timer_oid.startswith('iso') else timer_oid, ''))
+        # match = re.search(r'\d+', str(timer_input))
+        # nums = ''
+        # if match:
+        #     nums = match.group()
+        # else:
+        #     root.after(1000, snmp)
+        #     return None
 
-        #THIS IS REPLACING get_throughput()
-        timeout_counter += 1
-        timer_input = snmp_data.get(timer_oid, '') # gets the total time the modem has been running
-        match = re.search(r'\d+', timer_input)
-        nums = ''
-        if match:
-            nums = match.group()
-        else:
-            root.after(1000, snmp) #call snmp every 1 second
-            return None
-        time_running = (int(nums))/100
-        time_interval = time_running - last_time
-        if time_interval != 0:
-            bytes_received = (int(snmp_data.get(throughput_in_oid, 0)))
-            bytes_sent = int(snmp_data.get(throughput_out_oid, 0))
-            incoming_throughput = (((bytes_received - prev_bytes_received)/time_interval)*8)/1000
-            outgoing_throughput = (((bytes_sent - prev_bytes_sent)/time_interval)*8)/1000
-            prev_bytes_received = bytes_received
-            prev_bytes_sent = bytes_sent
-            last_recorded_incoming = incoming_throughput
-            last_recorded_outgoing = outgoing_throughput
+        # time_running = (int(nums)) / 100
+        # time_interval = time_running - last_time
+        # if time_interval != 0:
+        #     try:
+        #         bytes_received = int(snmp_data.get(throughput_in_oid, snmp_data.get(throughput_in_oid.replace('iso', '1') if throughput_in_oid.startswith('iso') else throughput_in_oid, 0)))
+        #     except (TypeError, ValueError):
+        #         bytes_received = 0
+        #     try:
+        #         bytes_sent = int(snmp_data.get(throughput_out_oid, snmp_data.get(throughput_out_oid.replace('iso', '1') if throughput_out_oid.startswith('iso') else throughput_out_oid, 0)))
+        #     except (TypeError, ValueError):
+        #         bytes_sent = 0
 
-            if incoming_throughput is not None and outgoing_throughput is not None:
-                if incoming_throughput > 0.01 and outgoing_throughput > 0.01:
-                    # Only update the label if both values are greater than 0.01 Kbps
-                    throughput_label.config(text=f"Incoming Throughput: {int(incoming_throughput)} Kbps\nOutgoing Throughput: {int(outgoing_throughput)} Kbps")
-                    timeout_counter = 0 #reset the timeout counter
-                    incoming_throughput_history.append(incoming_throughput)
-                    outgoing_throughput_history.append(outgoing_throughput)
-                elif timeout_counter >= 10: # Check for zero throughput (throughput = 0 for 10 seconds)
-                    throughput_label.config(text=f"Incoming Throughput: {int(incoming_throughput)} Kbps\nOutgoing Throughput: {int(outgoing_throughput)} Kbps")
-                    incoming_throughput_history.append(0)
-                    outgoing_throughput_history.append(0)
-                else:
-                    incoming_throughput_history.append(last_recorded_incoming)
-                    outgoing_throughput_history.append(last_recorded_outgoing)
+        #     incoming_throughput = (((bytes_received - prev_bytes_received) / time_interval) * 8) / 1000
+        #     outgoing_throughput = (((bytes_sent - prev_bytes_sent) / time_interval) * 8) / 1000
+        #     prev_bytes_received = bytes_received
+        #     prev_bytes_sent = bytes_sent
+        #     last_recorded_incoming = incoming_throughput
+        #     last_recorded_outgoing = outgoing_throughput
 
-            else:
-                # If either value is None, display an error message
-                throughput_label.config(text="Error fetching throughput data.")
-        else:
-            incoming_throughput_history.append(last_recorded_incoming)
-            outgoing_throughput_history.append(last_recorded_outgoing)
+        #     if incoming_throughput is not None and outgoing_throughput is not None:
+        #         if incoming_throughput > 0.01 and outgoing_throughput > 0.01:
+        #             throughput_label.config(text=f"Incoming Throughput: {int(incoming_throughput)} Kbps\nOutgoing Throughput: {int(outgoing_throughput)} Kbps")
+        #             timeout_counter = 0
+        #             incoming_throughput_history.append(incoming_throughput)
+        #             outgoing_throughput_history.append(outgoing_throughput)
+        #         elif timeout_counter >= 10:
+        #             throughput_label.config(text=f"Incoming Throughput: {int(incoming_throughput)} Kbps\nOutgoing Throughput: {int(outgoing_throughput)} Kbps")
+        #             incoming_throughput_history.append(0)
+        #             outgoing_throughput_history.append(0)
+        #         else:
+        #             incoming_throughput_history.append(last_recorded_incoming)
+        #             outgoing_throughput_history.append(last_recorded_outgoing)
+        #     else:
+        #         throughput_label.config(text="Error fetching throughput data.")
+        # else:
+        #     incoming_throughput_history.append(last_recorded_incoming)
+        #     outgoing_throughput_history.append(last_recorded_outgoing)
 
-        last_time = time_running
-        throughput_label.update_idletasks()  # Force GUI update
-        #update_history_plot()
+        # last_time = time_running
+        # throughput_label.update_idletasks()
 
-
-    except subprocess.CalledProcessError as e:
-        print(f"Is the Rover on? {e}")
+    except Exception as e:
+        print(f"SNMP error or Rover unreachable: {e}")
         status_message = "Is the Rover on? No signal"
         signal = "Disconnected"
         update_signal_strength_display(signal)
-        status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-        status_label.update_idletasks()  # Force GUI update
-        incoming_throughput_history.append(0)
-        outgoing_throughput_history.append(0)
-        signal_history.append(-100)
-        #update_history_plot()
-        #return None
-    root.after(1000, snmp) #call snmp every 1 second
+        status_label.config(text=f"Status: {status_message}")
+        status_label.update_idletasks()
+        rx_rate_history.append(0)
+        tx_rate_history.append(0)
+        signal_history.append(-np.inf)
+
+    root.after(1000, snmp)
     return
 
 def calibrate():
@@ -344,7 +313,7 @@ def calibrate():
         print("First time calibrating")
         calibrate_start = False
         wait = round(((current_angle * 0.03) + 2) * 1000) #Our data says that the time it takes for the antenna to move in sec is 0.0297(current angle) + 1.812
-        max_signal_strength = -100
+        max_signal_strength = -np.inf
         max_angle = 0 #stores the angle with the max signal strength
         max_angles = []
         current_angle = 0
@@ -357,9 +326,9 @@ def calibrate():
         #Get the signal strength
         #get_signal_strength() #community_string, ip_address, oid)
         try:
-            current_signal_strength = int(signal)
+            current_signal_strength = signal
         except(ValueError, TypeError):
-            current_signal_strength = -100
+            current_signal_strength = -np.inf
             print("ROVER DISCONNECTED")
         if current_signal_strength > max_signal_strength:
             max_signal_strength = current_signal_strength
@@ -388,9 +357,9 @@ def calibrate():
         status_label.update_idletasks()  # Force GUI update
 
         try:
-            current_signal_strength = int(signal)
+            current_signal_strength = signal
         except(ValueError, TypeError):
-            current_signal_strength = -100
+            current_signal_strength = -np.inf
             print("ROVER DISCONNECTED")
         if current_signal_strength > max_signal_strength:
             max_signal_strength = current_signal_strength
@@ -433,23 +402,22 @@ def calibrate():
         return
 
 def set_mode(new_mode): #This updates the radio buttons with the changes that happen automatically
-        global mode
-        mode = new_mode
-        mode_var.set(new_mode)
-        change_mode()
+    global mode
+    mode = new_mode
+    mode_var.set(new_mode)
+    change_mode()
 
 # Starts Automatic mode: Samples the signal to the left and right of the initial calibrated value
 #Moves the antenna to the location with the strongest signal
 #does this continually to determine if the rover has moved or if the signal strength has changed
 
-def start_automatic_mode():
+def automatic_mode():
     """Automatic mode to find the strongest signal and adjust the servo."""
     global current_angle
     global mode
     global status_message
     global step_size
     global signal_strengths
-    global start_automatic_mode
     global direction
     global right_signal_strength
     global left_signal_strength
@@ -484,7 +452,7 @@ def start_automatic_mode():
             update_angle_display()  # Update the label after changing the angle
             print("maxed out")
 
-        root.after(snmp_delay, start_automatic_mode)
+        root.after(snmp_delay, automatic_mode)
         update_polar_plot()
         return
 
@@ -506,7 +474,7 @@ def start_automatic_mode():
             current_angle = 180
             send_command(f"{current_angle}")
             update_angle_display()  # Update the label after changing the angle
-        root.after(snmp_delay, start_automatic_mode)
+        root.after(snmp_delay, automatic_mode)
         update_polar_plot()
         return
 
@@ -522,13 +490,13 @@ def start_automatic_mode():
         #Possible bug fix
         try:
             #print("TRYING")
-            right_signal_strength = int(right_signal_strength)
-            left_signal_strength = int(left_signal_strength)
-            center_signal_strength = int(center_signal_strength)
+            right_signal_strength = right_signal_strength
+            left_signal_strength = left_signal_strength
+            center_signal_strength = center_signal_strength
         except(ValueError, TypeError):
-            right_signal_strength = -100
-            center_signal_strength = -100
-            left_signal_strength = -100
+            right_signal_strength = -np.inf
+            center_signal_strength = -np.inf
+            left_signal_strength = -np.inf
             print("No Signal")
 
         #find the final posisiton
@@ -557,7 +525,7 @@ def start_automatic_mode():
             # print("Signal strongest in center")
         #result_label.config(text=f"Max Signal Strength: {max_signal_strength} dBm at {current_angle}°")
         update_angle_display()
-        root.after(snmp_delay, start_automatic_mode)
+        root.after(snmp_delay, automatic_mode)
         update_polar_plot()
         return
 
@@ -598,7 +566,7 @@ def change_mode():
             status_message = "Starting Automatic Mode"
             update_status_display()
             print("Switched to Automatic Mode")
-            start_automatic_mode()
+            automatic_mode()
         #Handles Calibration mode
         elif mode == 'C':
             status_message = "Starting Calibration"
@@ -737,9 +705,9 @@ def update_polar_plot():
     #strengths = [int(s) for s in signal_strengths.values()]  # Convert all to integers
     for angle, s in signal_strengths.items():
         try:
-            strengths.append(int(s))
+            strengths.append(s)
         except (ValueError, TypeError):
-            strengths.append(-100)
+            strengths.append(-np.inf)
         #angles_deg.append(angle)
 
     #angles_rad = np.radians(angles_deg)
@@ -771,7 +739,7 @@ def update_polar_plot():
     #print("done updating polar plot")
 
 def update_history_plot():
-    global signal_history, incoming_throughput_history, outgoing_throughput_history
+    global signal_history, rx_rate_history, tx_rate_history
 
     # Clear the previous plot
     history_fig.clear()
@@ -795,8 +763,8 @@ def update_history_plot():
     )
 
     # Plot throughput history on the second subplot
-    axs[1].plot(list(range(len(incoming_throughput_history))), list(incoming_throughput_history), label='Incoming')
-    axs[1].plot(list(range(len(outgoing_throughput_history))), list(outgoing_throughput_history), label='Outgoing')
+    axs[1].plot(list(range(len(rx_rate_history))), list(rx_rate_history), label='Incoming')
+    axs[1].plot(list(range(len(tx_rate_history))), list(tx_rate_history), label='Outgoing')
     axs[1].set_xlim(0, 120)
     #axs[1].set_ylim(0, 100)
     axs[1].set_title("Throughput Over Time")
@@ -815,7 +783,7 @@ def update_history_plot():
 
 
 def build_ui(root):
-    root.title("Servo Control GUI")
+    root.title("Base Station Antenna Control")
 
     # --- Top Frame: Mode and Step Size ---
     top_frame = tk.Frame(root)
@@ -825,34 +793,52 @@ def build_ui(root):
     mode_frame = tk.LabelFrame(top_frame, text="Mode Selection")
     mode_frame.pack(side='left', padx=10)
     global mode_var
-    tk.Radiobutton(mode_frame, text="Automatic", variable=mode_var, value='A',
-                                    command=lambda: set_mode('A')).pack(anchor='w')
-    tk.Radiobutton(mode_frame, text="Manual", variable=mode_var, value='M',
-                                    command=lambda: set_mode('M')).pack(anchor='w')
-    tk.Radiobutton(mode_frame, text="Calibrate", variable=mode_var, value='C',
-                                    command=lambda: set_mode('C')).pack(anchor='w')
+    tk.Radiobutton(
+        mode_frame, text="Automatic", variable=mode_var, value='A',
+        command=lambda: set_mode('A')
+    ).pack(anchor='w')
+    tk.Radiobutton(
+        mode_frame, text="Manual", variable=mode_var, value='M',
+        command=lambda: set_mode('M')
+    ).pack(anchor='w')
+    tk.Radiobutton(
+        mode_frame, text="Calibrate", variable=mode_var, value='C',
+        command=lambda: set_mode('C')
+    ).pack(anchor='w')
 
     # Step Size
     step_size_frame = tk.LabelFrame(top_frame, text="Step Size")
     step_size_frame.pack(side='left', padx=10)
     global step_size_var
-    tk.Radiobutton(step_size_frame, text="Close Range (Big Steps)", variable=step_size_var, value=20,
-                                    command=update_step_size).pack(anchor='w')
-    tk.Radiobutton(step_size_frame, text="Medium Range (Smaller Steps)", variable=step_size_var, value=15,
-                                    command=update_step_size).pack(anchor='w')
-    tk.Radiobutton(step_size_frame, text="Long Range (Small Steps)", variable=step_size_var, value=10,
-                                    command=update_step_size).pack(anchor='w')
+    tk.Radiobutton(
+        step_size_frame, text="Close Range (Big Steps)", variable=step_size_var, value=20,
+        command=update_step_size
+    ).pack(anchor='w')
+    tk.Radiobutton(
+        step_size_frame, text="Medium Range (Smaller Steps)", variable=step_size_var, value=15,
+        command=update_step_size
+    ).pack(anchor='w')
+    tk.Radiobutton(
+        step_size_frame, text="Long Range (Small Steps)", variable=step_size_var, value=10,
+        command=update_step_size
+    ).pack(anchor='w')
 
     # Time Adjustment
     time_frame = tk.LabelFrame(top_frame, text="Time Adjustment")
     time_frame.pack(side='left', padx=10)
     global snmp_delay
-    tk.Radiobutton(time_frame, text="Very slow search", variable=snmp_delay_var, value=12000,
-                                command=update_time_delay).pack(anchor='w')
-    tk.Radiobutton(time_frame, text="Slow Search", variable=snmp_delay_var, value=10000,
-                                command=update_time_delay).pack(anchor='w')
-    tk.Radiobutton(time_frame, text="Fast search", variable=snmp_delay_var, value=8000,
-                                command=update_time_delay).pack(anchor='w')
+    tk.Radiobutton(
+        time_frame, text="Very slow search", variable=snmp_delay_var, value=12000,
+        command=update_time_delay
+    ).pack(anchor='w')
+    tk.Radiobutton(
+        time_frame, text="Slow Search", variable=snmp_delay_var, value=10000,
+        command=update_time_delay
+    ).pack(anchor='w')
+    tk.Radiobutton(
+        time_frame, text="Fast search", variable=snmp_delay_var, value=8000,
+        command=update_time_delay
+    ).pack(anchor='w')
 
     # --- Manual Controls Frame ---
     manual_frame = tk.LabelFrame(root, text="Manual Controls")
@@ -953,7 +939,7 @@ snmp_delay_var = tk.IntVar(value=10000)
 build_ui(root)
 
 # Start your scheduled processes
-start_automatic_mode()       # or set_mode('A') if you prefer
+automatic_mode()       # or set_mode('A') if you prefer
 root.after(100, read_serial_data)
 root.after(1000, snmp)
 root.after(2000, update_history_plot)

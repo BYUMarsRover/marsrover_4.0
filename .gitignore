@@ -13,4 +13,5 @@
 __pycache__
 .vscode
 .DS_Store
+.mars
 core

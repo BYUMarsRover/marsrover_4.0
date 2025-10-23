@@ -89,6 +89,17 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     && rm -rf /var/lib/apt/lists/*; \
     fi
 
+# Install SNMP library dependencies - Jacob Gunnell, Oct 2025
+#RUN apt-get update && apt-get install -y --no-install-recommends \
+ #   libsnmp-dev snmp-mibs-downloader
+
+# Install CLI tools - Jacob Gunnell, Oct 2025
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # lsusb for listing USB devices - Jacob Gunnell, Oct 2025
+    usbutils \
+    # snmp for network management and monitoring - Jacob Gunnell, Oct 2025
+    snmp
+
 USER $NAME
 WORKDIR /home/$NAME
 
@@ -107,7 +118,9 @@ RUN pip3 install --no-cache-dir \
     # Simple A* path planning algorithm implementation - Nelson Durrant, Apr 2025
     astar \
     # Used for experimental MCP server hookup - Nelson Durrant, July 2025
-    fastmcp uv
+    fastmcp uv \
+    # Used for network management and SNMP operations - Jacob Gunnell, Oct 2025
+    easysnmp
 ENV PATH="$PATH:/home/$NAME/.local/bin"
 
 # Install PlatformIO for firmware development - Nelson Durrant, Mar 2025
@@ -133,5 +146,8 @@ RUN pio pkg install --project-dir /home/$NAME/firmware/mega_pio \
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc \
     && echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ~/.bashrc \
     && touch ~/.hushlogin
+
+# Set tmux to use color - Jacob Gunnell, Sept 2025
+RUN echo "set -g default-terminal \"screen-256color\"" >> ~/.tmux.conf
 
 CMD ["bash"]
