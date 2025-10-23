@@ -17,23 +17,21 @@ Theoretically, manual mode should never be used. It is only included as a backup
 If you want to know how this works, paste it into chatGPT or something like that and it will explain it pretty well
 
 Things to do:
-  Modify the code to dynamically modify the step size and delay time once it has found the rover
-  Debug the distance calculator - doesn't work
-  Look into GPS for determining where the rover is and pointing at it - might be harder
-  Switch the control box from running on batteries to a 5V 2A(ish) DC power supply that plugs into the wall - The batteries die pretty quick
+    Modify the code to dynamically modify the step size and delay time once it has found the rover
+    Debug the distance calculator - doesn't work
+    Look into GPS for determining where the rover is and pointing at it - might be harder
+    Switch the control box from running on batteries to a 5V 2A(ish) DC power supply that plugs into the wall - The batteries die pretty quick
 
 
 IMPORTANT NOTES:
-  Use frequency scan list in wireless settings on rocket to define channels
-  Password for the modem: thecolton
+    Use frequency scan list in wireless settings on rocket to define channels
+    Password for the modem: thecolton
 '''
 
 import serial # To allow communication with the arduino
 import time # Allows us to create delays and timers
-import math # For simulate mode mostly
 import subprocess #allows us to talk to the modem
 import tkinter as tk # Allows us to create a simple gui
-from tkinter import ttk
 from tkinter import messagebox # Allows messages on the gui
 import matplotlib.pyplot as plt # Creates plots
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -86,33 +84,33 @@ baudrate = 9600
 
 #Attempts to reconnect the serial port should it come disconnected
 def reconnect_serial():
-  """Reconnect to the serial port if it becomes disconnected."""
-  global ser
-  try:
-    ser.close()
-  except Exception as e:
-    print(f"Error closing serial port: {e}")
-
-  max_attempts = 120
-  delay = 1
-  attempts = 0
-  while attempts < max_attempts:
+    """Reconnect to the serial port if it becomes disconnected."""
+    global ser
     try:
-      ser = serial.Serial(port, baudrate)
-      print("Reconnected to serial port successfully.")
-      return
-    except serial.SerialException as e:
-      print(f"Attempt {attempts+1} failed. Retrying in {delay} seconds...")
-      attempts += 1
-      time.sleep(delay)
-  print("Failed to reconnect after multiple attempts.")
+        ser.close()
+    except Exception as e:
+        print(f"Error closing serial port: {e}")
+
+    max_attempts = 120
+    delay = 1
+    attempts = 0
+    while attempts < max_attempts:
+        try:
+            ser = serial.Serial(port, baudrate)
+            print("Reconnected to serial port successfully.")
+            return
+        except serial.SerialException as e:
+            print(f"Attempt {attempts+1} failed. Retrying in {delay} seconds...")
+            attempts += 1
+            time.sleep(delay)
+    print("Failed to reconnect after multiple attempts.")
 
 # Initialize the serial connection
 try:
-  ser = serial.Serial(port, baudrate)
+    ser = serial.Serial(port, baudrate)
 except serial.SerialException as e:
-  print(f"Error connecting to serial port: {e}")
-  reconnect_serial()
+    print(f"Error connecting to serial port: {e}")
+    reconnect_serial()
 
 # Writes a command to the arduino, which accepts and executes it
 def send_command(command):
@@ -159,458 +157,458 @@ def read_serial_data():
                 arduino_message_label.update_idletasks()
 
     except serial.SerialException as e:
-      print(f"Serial communication error: {e}")
-      arduino_message_label.config(text="Arduino: Serial Error")
-      battery_voltage_label.config(text="Battery Voltage: Serial Error")
-      arduino_message_label.update_idletasks()
-      battery_voltage_label.update_idletasks()
-      reconnect_serial()  # Attempt to reconnect
+        print(f"Serial communication error: {e}")
+        arduino_message_label.config(text="Arduino: Serial Error")
+        battery_voltage_label.config(text="Battery Voltage: Serial Error")
+        arduino_message_label.update_idletasks()
+        battery_voltage_label.update_idletasks()
+        reconnect_serial()  # Attempt to reconnect
 
     root.after(2000, read_serial_data)
 
 # Polls the Rocket box for connection data
 def snmp():
-  #Global variables
-  global signal
-  global simulate_mode
-  global snmp_data
-  global timeout_counter
-  global incoming_throughput_history
-  global outgoing_throughput_history
-  global prev_bytes_received
-  global prev_bytes_sent
-  global last_recorded_incoming
-  global last_recorded_outgoing
-  global last_time
+    #Global variables
+    global signal
+    global simulate_mode
+    global snmp_data
+    global timeout_counter
+    global incoming_throughput_history
+    global outgoing_throughput_history
+    global prev_bytes_received
+    global prev_bytes_sent
+    global last_recorded_incoming
+    global last_recorded_outgoing
+    global last_time
 
-  #local variables for the snmp query
-  base_oid = ".1.3.6.1.4.1.41112.1.4.7.1"
-  signal_strength_oid = "iso.3.6.1.4.1.41112.1.4.7.1.3.1.104.114.81.132.178.5"
-  throughput_in_oid = "iso.3.6.1.4.1.41112.1.4.7.1.13.1.104.114.81.132.178.5"
-  throughput_out_oid = "iso.3.6.1.4.1.41112.1.4.7.1.14.1.104.114.81.132.178.5"
-  timer_oid = "iso.3.6.1.4.1.41112.1.4.7.1.15.1.104.114.81.132.178.5"
-  distance_oid = "iso.3.6.1.4.1.41112.1.4.7.1.6.1.104.114.81.132.178.5"
-  community_string = "public"
-  ip_address = "192.168.1.30"
+    #local variables for the snmp query
+    base_oid = ".1.3.6.1.4.1.41112.1.4.7.1"
+    signal_strength_oid = "iso.3.6.1.4.1.41112.1.4.7.1.3.1.104.114.81.132.178.5"
+    throughput_in_oid = "iso.3.6.1.4.1.41112.1.4.7.1.13.1.104.114.81.132.178.5"
+    throughput_out_oid = "iso.3.6.1.4.1.41112.1.4.7.1.14.1.104.114.81.132.178.5"
+    timer_oid = "iso.3.6.1.4.1.41112.1.4.7.1.15.1.104.114.81.132.178.5"
+    distance_oid = "iso.3.6.1.4.1.41112.1.4.7.1.6.1.104.114.81.132.178.5"
+    community_string = "public"
+    ip_address = "192.168.1.30"
 
-  #Allows us to run the code without getting data from the antenna
-  if simulate_mode:
-    simulated_signal  = random.randint(-100, 0) #Just generates a random int variable, not necessary just to see how the graphs are working
-    simulated_result = f"SNMP SIMULATION MODE: {simulated_signal}"
-    return simulated_result
+    #Allows us to run the code without getting data from the antenna
+    if simulate_mode:
+        simulated_signal  = random.randint(-100, 0) #Just generates a random int variable, not necessary just to see how the graphs are working
+        simulated_result = f"SNMP SIMULATION MODE: {simulated_signal}"
+        return simulated_result
 
-  command = [
-    "snmpwalk",
-    "-v1",
-    "-c", community_string,
-    "-r", "1", # Number of tries it does to reach the modem - Has to be at least 1
-    "-t", "0.1", # How long it waits between retries
-    ip_address,
-    base_oid
-  ]
-  #This should catch if the rover is disconnected
-  try:
-    result = subprocess.check_output(command, stderr=subprocess.PIPE, universal_newlines=True)
-    print(f"snmp() returned: {result}")
+    command = [
+        "snmpwalk",
+        "-v1",
+        "-c", community_string,
+        "-r", "1", # Number of tries it does to reach the modem - Has to be at least 1
+        "-t", "0.1", # How long it waits between retries
+        ip_address,
+        base_oid
+    ]
+    #This should catch if the rover is disconnected
+    try:
+        result = subprocess.check_output(command, stderr=subprocess.PIPE, universal_newlines=True)
+        print(f"snmp() returned: {result}")
 
-    data_received = False
+        data_received = False
 
-    pattern = re.compile(r"(\S+)\s+=\s+\S+\s*:\s*(.+)") #Creates a pattern for splitting the resulting lines
-    for line in result.splitlines():
-      match = pattern.match(line) #matches each line to the pattern
-      if match:
-        data_received = True
-        oid, value = match.groups() #when they match, it labels each group with oid and value
-        #print(f"OID: {oid}, Value: {value}")# For debugging purposes
-        snmp_data[oid] = value
-        #return snmp_data
-        #THIS IS REPLACING get_signal_strength()
-        #print(f"snmp() returned: {signal}")
-      elif not data_received:
-        print(f"Is the Rover on?")
+        pattern = re.compile(r"(\S+)\s+=\s+\S+\s*:\s*(.+)") #Creates a pattern for splitting the resulting lines
+        for line in result.splitlines():
+            match = pattern.match(line) #matches each line to the pattern
+            if match:
+                data_received = True
+                oid, value = match.groups() #when they match, it labels each group with oid and value
+                #print(f"OID: {oid}, Value: {value}")# For debugging purposes
+                snmp_data[oid] = value
+                #return snmp_data
+                #THIS IS REPLACING get_signal_strength()
+                #print(f"snmp() returned: {signal}")
+            elif not data_received:
+                print(f"Is the Rover on?")
 
-    # Finished loop and never got data
-    if not data_received:
-      print("No data received")
-      status_message = "Is the Rover on? No signal"
-      signal = "Disconnected"
-      update_signal_strength_display(signal)
-      status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-      status_label.update_idletasks()  # Force GUI update
-      signal_history.append(-100)
-      incoming_throughput_history.append(0)
-      outgoing_throughput_history.append(0)
-      root.after(1000, snmp) #call snmp every 1 second
-      return None
+        # Finished loop and never got data
+        if not data_received:
+            print("No data received")
+            status_message = "Is the Rover on? No signal"
+            signal = "Disconnected"
+            update_signal_strength_display(signal)
+            status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+            status_label.update_idletasks()  # Force GUI update
+            signal_history.append(-100)
+            incoming_throughput_history.append(0)
+            outgoing_throughput_history.append(0)
+            root.after(1000, snmp) #call snmp every 1 second
+            return None
 
-    signal = snmp_data.get(signal_strength_oid, -100)
-    signal = int(signal)
-    #print(f"SIGNAL STRENGTH: {signal}")
-    signal_history.append(signal)
-    update_signal_strength_display(signal)
+        signal = snmp_data.get(signal_strength_oid, -100)
+        signal = int(signal)
+        #print(f"SIGNAL STRENGTH: {signal}")
+        signal_history.append(signal)
+        update_signal_strength_display(signal)
 
-    data_received = False
+        data_received = False
 
-    #Get the distance
-    distance = snmp_data.get(distance_oid, -100)
-    distance = int(distance)
-    #print(f"THE ROVER IS {distance} AWAY")
-    #distance_label.config(text=f"The rover is {distance}m away")
-    distance_label.update_idletasks()  # Force GUI update
+        #Get the distance
+        distance = snmp_data.get(distance_oid, -100)
+        distance = int(distance)
+        #print(f"THE ROVER IS {distance} AWAY")
+        #distance_label.config(text=f"The rover is {distance}m away")
+        distance_label.update_idletasks()  # Force GUI update
 
 
-    #THIS IS REPLACING get_throughput()
-    timeout_counter += 1
-    timer_input = snmp_data.get(timer_oid, '') # gets the total time the modem has been running
-    match = re.search(r'\d+', timer_input)
-    nums = ''
-    if match:
-      nums = match.group()
-    else:
-      root.after(1000, snmp) #call snmp every 1 second
-      return None
-    time_running = (int(nums))/100
-    time_interval = time_running - last_time
-    if time_interval != 0:
-      bytes_received = (int(snmp_data.get(throughput_in_oid, 0)))
-      bytes_sent = int(snmp_data.get(throughput_out_oid, 0))
-      incoming_throughput = (((bytes_received - prev_bytes_received)/time_interval)*8)/1000
-      outgoing_throughput = (((bytes_sent - prev_bytes_sent)/time_interval)*8)/1000
-      prev_bytes_received = bytes_received
-      prev_bytes_sent = bytes_sent
-      last_recorded_incoming = incoming_throughput
-      last_recorded_outgoing = outgoing_throughput
-
-      if incoming_throughput is not None and outgoing_throughput is not None:
-        if incoming_throughput > 0.01 and outgoing_throughput > 0.01:
-          # Only update the label if both values are greater than 0.01 Kbps
-          throughput_label.config(text=f"Incoming Throughput: {int(incoming_throughput)} Kbps\nOutgoing Throughput: {int(outgoing_throughput)} Kbps")
-          timeout_counter = 0 #reset the timeout counter
-          incoming_throughput_history.append(incoming_throughput)
-          outgoing_throughput_history.append(outgoing_throughput)
-        elif timeout_counter >= 10: # Check for zero throughput (throughput = 0 for 10 seconds)
-          throughput_label.config(text=f"Incoming Throughput: {int(incoming_throughput)} Kbps\nOutgoing Throughput: {int(outgoing_throughput)} Kbps")
-          incoming_throughput_history.append(0)
-          outgoing_throughput_history.append(0)
+        #THIS IS REPLACING get_throughput()
+        timeout_counter += 1
+        timer_input = snmp_data.get(timer_oid, '') # gets the total time the modem has been running
+        match = re.search(r'\d+', timer_input)
+        nums = ''
+        if match:
+            nums = match.group()
         else:
-          incoming_throughput_history.append(last_recorded_incoming)
-          outgoing_throughput_history.append(last_recorded_outgoing)
+            root.after(1000, snmp) #call snmp every 1 second
+            return None
+        time_running = (int(nums))/100
+        time_interval = time_running - last_time
+        if time_interval != 0:
+            bytes_received = (int(snmp_data.get(throughput_in_oid, 0)))
+            bytes_sent = int(snmp_data.get(throughput_out_oid, 0))
+            incoming_throughput = (((bytes_received - prev_bytes_received)/time_interval)*8)/1000
+            outgoing_throughput = (((bytes_sent - prev_bytes_sent)/time_interval)*8)/1000
+            prev_bytes_received = bytes_received
+            prev_bytes_sent = bytes_sent
+            last_recorded_incoming = incoming_throughput
+            last_recorded_outgoing = outgoing_throughput
 
-      else:
-        # If either value is None, display an error message
-        throughput_label.config(text="Error fetching throughput data.")
-    else:
-      incoming_throughput_history.append(last_recorded_incoming)
-      outgoing_throughput_history.append(last_recorded_outgoing)
+            if incoming_throughput is not None and outgoing_throughput is not None:
+                if incoming_throughput > 0.01 and outgoing_throughput > 0.01:
+                    # Only update the label if both values are greater than 0.01 Kbps
+                    throughput_label.config(text=f"Incoming Throughput: {int(incoming_throughput)} Kbps\nOutgoing Throughput: {int(outgoing_throughput)} Kbps")
+                    timeout_counter = 0 #reset the timeout counter
+                    incoming_throughput_history.append(incoming_throughput)
+                    outgoing_throughput_history.append(outgoing_throughput)
+                elif timeout_counter >= 10: # Check for zero throughput (throughput = 0 for 10 seconds)
+                    throughput_label.config(text=f"Incoming Throughput: {int(incoming_throughput)} Kbps\nOutgoing Throughput: {int(outgoing_throughput)} Kbps")
+                    incoming_throughput_history.append(0)
+                    outgoing_throughput_history.append(0)
+                else:
+                    incoming_throughput_history.append(last_recorded_incoming)
+                    outgoing_throughput_history.append(last_recorded_outgoing)
 
-    last_time = time_running
-    throughput_label.update_idletasks()  # Force GUI update
-    #update_history_plot()
+            else:
+                # If either value is None, display an error message
+                throughput_label.config(text="Error fetching throughput data.")
+        else:
+            incoming_throughput_history.append(last_recorded_incoming)
+            outgoing_throughput_history.append(last_recorded_outgoing)
+
+        last_time = time_running
+        throughput_label.update_idletasks()  # Force GUI update
+        #update_history_plot()
 
 
-  except subprocess.CalledProcessError as e:
-    print(f"Is the Rover on? {e}")
-    status_message = "Is the Rover on? No signal"
-    signal = "Disconnected"
-    update_signal_strength_display(signal)
-    status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-    status_label.update_idletasks()  # Force GUI update
-    incoming_throughput_history.append(0)
-    outgoing_throughput_history.append(0)
-    signal_history.append(-100)
-    #update_history_plot()
-    #return None
-  root.after(1000, snmp) #call snmp every 1 second
-  return
-
-def calibrate():
-  #global variables
-  global current_angle
-  global mode
-  global calibrate_start
-  global max_signal_strength
-  global max_angle
-  global max_angles
-  global status_message
-  global wait_time
-  global signal_history
-  global current_signal_strength
-  global signal_strengths
-
-  #print("Entered Calibration")
-  status_message = "Scanning"
-  status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-  status_label.update_idletasks()  # Force GUI update
-
-  if calibrate_start == True:
-    print("First time calibrating")
-    calibrate_start = False
-    wait = round(((current_angle * 0.03) + 2) * 1000) #Our data says that the time it takes for the antenna to move in sec is 0.0297(current angle) + 1.812
-    max_signal_strength = -100
-    max_angle = 0 #stores the angle with the max signal strength
-    max_angles = []
-    current_angle = 0
-    send_command(f"{current_angle}")
-    update_angle_display()  # Update the label with the new angle
-    root.after(wait, calibrate)
-
-  elif current_angle <= 175 and mode == 'C':
-    #print("Calibrating")
-    #Get the signal strength
-    #get_signal_strength() #community_string, ip_address, oid)
-    try:
-      current_signal_strength = int(signal)
-    except(ValueError, TypeError):
-      current_signal_strength = -100
-      print("ROVER DISCONNECTED")
-    if current_signal_strength > max_signal_strength:
-      max_signal_strength = current_signal_strength
-      max_angles = [current_angle]
-
-    elif current_signal_strength == max_signal_strength:
-      max_angles.append(current_angle) #stores a list of all values that share the max signal strength
-
-    #print("drawing the polar plot")
-    #Update the signal strength graph
-    signal_strengths[current_angle] = current_signal_strength
-
-    #plt.pause(.1)
-
-    #Update the status angle
-    current_angle += 30
-    send_command(f"{current_angle}")
-    update_polar_plot()
-    angle_label.config(text=f"Current Angle: {current_angle}°") #try not letting me update the angle display now you dummy
-    angle_label.update_idletasks()  # Force GUI update - this works
-    root.after(10000, calibrate) #2000 comes from our formula for rotation time plus a little buffer
-
-  elif current_angle >= 180:
-    status_message = "Calibration Ended Correctly"
-    status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-    status_label.update_idletasks()  # Force GUI update
-
-    try:
-      current_signal_strength = int(signal)
-    except(ValueError, TypeError):
-      current_signal_strength = -100
-      print("ROVER DISCONNECTED")
-    if current_signal_strength > max_signal_strength:
-      max_signal_strength = current_signal_strength
-      max_angles = [current_angle]
-
-    elif current_signal_strength == max_signal_strength:
-      max_angles.append(current_angle) #stores a list of all values that share the max signal strength
-
-    #print("drawing the polar plot")
-    #Update the signal strength graph
-    signal_strengths[current_angle] = current_signal_strength
-    update_polar_plot()
-    print(f"MAX_ANGLES: {max_angles}")
-    if max_angles:
-      print(f"Inside max angle conditional")
-      max_angle = round(sum(max_angles)/len(max_angles)) #finds the average of the angles that shared the same singal strength
-      x = 180 - max_angle
-      print(f"Max found as: {max_angle}")
-      #wait = round(((x * 0.03) + 2)) #I didn't multiply by 1000 because i want it in sec instead of ms
-      send_command({max_angle})
-      status_message = f"Max Signal Strength: {max_signal_strength} dBm. Moving to angle {max_angle}"
-      current_angle = max_angle
-      print(status_message)
-      status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-      status_label.update_idletasks()  # Force GUI update
-      set_mode('A')
-      calibrate_start = True #Makes it run the first part of the code the next time calibrate is called ???Why is this at the end of the function (always runs)???
-
-    else:
-      print("NO ANGLES FOUND! SOMETHING WENT WRONG")
-      status_message = "SOMETHING WENT WRONG"
-      status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-      status_label.update_idletasks()  # Force GUI update
-      time.sleep(2) #give some time for someone to see the error message
-      set_mode('A') #return to automatic mode
-
-  else: #worst case scenario where some condition isn't met - most likely not in 'calbrate' mode
-    print("Calibrate Failed") #add this print statement for debugging
-    calibrate_start = True
+    except subprocess.CalledProcessError as e:
+        print(f"Is the Rover on? {e}")
+        status_message = "Is the Rover on? No signal"
+        signal = "Disconnected"
+        update_signal_strength_display(signal)
+        status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+        status_label.update_idletasks()  # Force GUI update
+        incoming_throughput_history.append(0)
+        outgoing_throughput_history.append(0)
+        signal_history.append(-100)
+        #update_history_plot()
+        #return None
+    root.after(1000, snmp) #call snmp every 1 second
     return
 
-def set_mode(new_mode): #This updates the radio buttons with the changes that happen automatically
+def calibrate():
+    #global variables
+    global current_angle
     global mode
-    mode = new_mode
-    mode_var.set(new_mode)
-    change_mode()
+    global calibrate_start
+    global max_signal_strength
+    global max_angle
+    global max_angles
+    global status_message
+    global wait_time
+    global signal_history
+    global current_signal_strength
+    global signal_strengths
+
+    #print("Entered Calibration")
+    status_message = "Scanning"
+    status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+    status_label.update_idletasks()  # Force GUI update
+
+    if calibrate_start == True:
+        print("First time calibrating")
+        calibrate_start = False
+        wait = round(((current_angle * 0.03) + 2) * 1000) #Our data says that the time it takes for the antenna to move in sec is 0.0297(current angle) + 1.812
+        max_signal_strength = -100
+        max_angle = 0 #stores the angle with the max signal strength
+        max_angles = []
+        current_angle = 0
+        send_command(f"{current_angle}")
+        update_angle_display()  # Update the label with the new angle
+        root.after(wait, calibrate)
+
+    elif current_angle <= 175 and mode == 'C':
+        #print("Calibrating")
+        #Get the signal strength
+        #get_signal_strength() #community_string, ip_address, oid)
+        try:
+            current_signal_strength = int(signal)
+        except(ValueError, TypeError):
+            current_signal_strength = -100
+            print("ROVER DISCONNECTED")
+        if current_signal_strength > max_signal_strength:
+            max_signal_strength = current_signal_strength
+            max_angles = [current_angle]
+
+        elif current_signal_strength == max_signal_strength:
+            max_angles.append(current_angle) #stores a list of all values that share the max signal strength
+
+        #print("drawing the polar plot")
+        #Update the signal strength graph
+        signal_strengths[current_angle] = current_signal_strength
+
+        #plt.pause(.1)
+
+        #Update the status angle
+        current_angle += 30
+        send_command(f"{current_angle}")
+        update_polar_plot()
+        angle_label.config(text=f"Current Angle: {current_angle}°") #try not letting me update the angle display now you dummy
+        angle_label.update_idletasks()  # Force GUI update - this works
+        root.after(10000, calibrate) #2000 comes from our formula for rotation time plus a little buffer
+
+    elif current_angle >= 180:
+        status_message = "Calibration Ended Correctly"
+        status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+        status_label.update_idletasks()  # Force GUI update
+
+        try:
+            current_signal_strength = int(signal)
+        except(ValueError, TypeError):
+            current_signal_strength = -100
+            print("ROVER DISCONNECTED")
+        if current_signal_strength > max_signal_strength:
+            max_signal_strength = current_signal_strength
+            max_angles = [current_angle]
+
+        elif current_signal_strength == max_signal_strength:
+            max_angles.append(current_angle) #stores a list of all values that share the max signal strength
+
+        #print("drawing the polar plot")
+        #Update the signal strength graph
+        signal_strengths[current_angle] = current_signal_strength
+        update_polar_plot()
+        print(f"MAX_ANGLES: {max_angles}")
+        if max_angles:
+            print(f"Inside max angle conditional")
+            max_angle = round(sum(max_angles)/len(max_angles)) #finds the average of the angles that shared the same singal strength
+            x = 180 - max_angle
+            print(f"Max found as: {max_angle}")
+            #wait = round(((x * 0.03) + 2)) #I didn't multiply by 1000 because i want it in sec instead of ms
+            send_command({max_angle})
+            status_message = f"Max Signal Strength: {max_signal_strength} dBm. Moving to angle {max_angle}"
+            current_angle = max_angle
+            print(status_message)
+            status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+            status_label.update_idletasks()  # Force GUI update
+            set_mode('A')
+            calibrate_start = True #Makes it run the first part of the code the next time calibrate is called ???Why is this at the end of the function (always runs)???
+
+        else:
+            print("NO ANGLES FOUND! SOMETHING WENT WRONG")
+            status_message = "SOMETHING WENT WRONG"
+            status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+            status_label.update_idletasks()  # Force GUI update
+            time.sleep(2) #give some time for someone to see the error message
+            set_mode('A') #return to automatic mode
+
+    else: #worst case scenario where some condition isn't met - most likely not in 'calbrate' mode
+        print("Calibrate Failed") #add this print statement for debugging
+        calibrate_start = True
+        return
+
+def set_mode(new_mode): #This updates the radio buttons with the changes that happen automatically
+        global mode
+        mode = new_mode
+        mode_var.set(new_mode)
+        change_mode()
 
 # Starts Automatic mode: Samples the signal to the left and right of the initial calibrated value
 #Moves the antenna to the location with the strongest signal
 #does this continually to determine if the rover has moved or if the signal strength has changed
 
 def start_automatic_mode():
-  """Automatic mode to find the strongest signal and adjust the servo."""
-  global current_angle
-  global mode
-  global status_message
-  global step_size
-  global signal_strengths
-  global start_automatic_mode
-  global direction
-  global right_signal_strength
-  global left_signal_strength
-  global center_signal_strength
-  global current_signal_strength
-  global snmp_delay
-  global signal_history
+    """Automatic mode to find the strongest signal and adjust the servo."""
+    global current_angle
+    global mode
+    global status_message
+    global step_size
+    global signal_strengths
+    global start_automatic_mode
+    global direction
+    global right_signal_strength
+    global left_signal_strength
+    global center_signal_strength
+    global current_signal_strength
+    global snmp_delay
+    global signal_history
 
-  #local variables
-  #delayTime = 4 #delay between scans: Change to speed up the scanning time or slow it down
+    #local variables
+    #delayTime = 4 #delay between scans: Change to speed up the scanning time or slow it down
 
-  if mode == 'A' and direction == 'Center':
-    status_message = "Scanning the center"
-    update_status_display()
-    center_signal_strength = signal#get_signal_strength()#community_string, ip_address, oid) #get signal strength
-    signal_strengths[current_angle] = center_signal_strength
+    if mode == 'A' and direction == 'Center':
+        status_message = "Scanning the center"
+        update_status_display()
+        center_signal_strength = signal#get_signal_strength()#community_string, ip_address, oid) #get signal strength
+        signal_strengths[current_angle] = center_signal_strength
 
-    print("CENTER")
+        print("CENTER")
 
-    #Moves to the right and gets ready to sample
-    direction = 'Right'
-    status_message = "Scanning to the right"
-    update_status_display()
-    #Prevents the angle from going negative
-    if current_angle >= step_size:
-      current_angle -= step_size  # Update current_angle
-      send_command(f"{current_angle}")
-      update_angle_display()  # Update the label after changing the angle
+        #Moves to the right and gets ready to sample
+        direction = 'Right'
+        status_message = "Scanning to the right"
+        update_status_display()
+        #Prevents the angle from going negative
+        if current_angle >= step_size:
+            current_angle -= step_size  # Update current_angle
+            send_command(f"{current_angle}")
+            update_angle_display()  # Update the label after changing the angle
+        else:
+            current_angle = 0
+            send_command(f"{current_angle}")
+            update_angle_display()  # Update the label after changing the angle
+            print("maxed out")
+
+        root.after(snmp_delay, start_automatic_mode)
+        update_polar_plot()
+        return
+
+    #scan right
+    elif mode == 'A' and direction == 'Right':
+        print("RIGHT")
+        right_signal_strength = signal #get_signal_strength()#community_string, ip_address, oid)
+        signal_strengths[current_angle] = right_signal_strength
+        direction = 'Left'
+        status_message = "Scanning to the left"
+        update_status_display()
+        if current_angle <= 180 - (2 * step_size):
+            #print(f"current_angle: {current_angle}")
+            #print(f"limit {180-(2 * step_size)}")
+            current_angle += 2 * step_size  # Move to the left of center from the right
+            send_command(f"{current_angle}")
+            update_angle_display()  # Update the label after changing the angle
+        else:
+            current_angle = 180
+            send_command(f"{current_angle}")
+            update_angle_display()  # Update the label after changing the angle
+        root.after(snmp_delay, start_automatic_mode)
+        update_polar_plot()
+        return
+
+            #scan left
+    elif mode == 'A' and direction == 'Left':
+        print("LEFT")
+        #time.sleep(delayTime)
+        left_signal_strength = signal#get_signal_strength()#community_string, ip_address, oid)
+        #print(f"Left Signal Strength: {left_signal_strength} dBm")
+        direction = 'Center'
+        signal_strengths[current_angle] = left_signal_strength
+
+        #Possible bug fix
+        try:
+            #print("TRYING")
+            right_signal_strength = int(right_signal_strength)
+            left_signal_strength = int(left_signal_strength)
+            center_signal_strength = int(center_signal_strength)
+        except(ValueError, TypeError):
+            right_signal_strength = -100
+            center_signal_strength = -100
+            left_signal_strength = -100
+            print("No Signal")
+
+        #find the final posisiton
+        #Right is the strongest
+        if right_signal_strength > left_signal_strength and right_signal_strength >= center_signal_strength:
+            '''send_command('R')
+            time.sleep(1)
+            send_command('R')''' #old way of controlling the servo
+            #current_angle -= 10
+            current_angle -= 2 * step_size  # Move to the right of center from the right
+            send_command(f"{current_angle}")
+            update_angle_display()  # Update the label after changing the angle
+            print("Signal strongest to right")
+
+        #Left is the strongest - honestly this condition really doesn't need to be here
+        elif left_signal_strength > right_signal_strength and left_signal_strength >= center_signal_strength:
+            print("Signal strongest to left")
+
+        #Center is strongest
+        else:
+            #send_command('R') old way of controlling servo
+            #current_angle -= 5
+            current_angle -= step_size
+            send_command(f"{current_angle}")
+            update_angle_display()  # Update the label after changing the angle
+            # print("Signal strongest in center")
+        #result_label.config(text=f"Max Signal Strength: {max_signal_strength} dBm at {current_angle}°")
+        update_angle_display()
+        root.after(snmp_delay, start_automatic_mode)
+        update_polar_plot()
+        return
+
     else:
-      current_angle = 0
-      send_command(f"{current_angle}")
-      update_angle_display()  # Update the label after changing the angle
-      print("maxed out")
-
-    root.after(snmp_delay, start_automatic_mode)
-    update_polar_plot()
-    return
-
-  #scan right
-  elif mode == 'A' and direction == 'Right':
-    print("RIGHT")
-    right_signal_strength = signal #get_signal_strength()#community_string, ip_address, oid)
-    signal_strengths[current_angle] = right_signal_strength
-    direction = 'Left'
-    status_message = "Scanning to the left"
-    update_status_display()
-    if current_angle <= 180 - (2 * step_size):
-      #print(f"current_angle: {current_angle}")
-      #print(f"limit {180-(2 * step_size)}")
-      current_angle += 2 * step_size  # Move to the left of center from the right
-      send_command(f"{current_angle}")
-      update_angle_display()  # Update the label after changing the angle
-    else:
-      current_angle = 180
-      send_command(f"{current_angle}")
-      update_angle_display()  # Update the label after changing the angle
-    root.after(snmp_delay, start_automatic_mode)
-    update_polar_plot()
-    return
-
-      #scan left
-  elif mode == 'A' and direction == 'Left':
-    print("LEFT")
-    #time.sleep(delayTime)
-    left_signal_strength = signal#get_signal_strength()#community_string, ip_address, oid)
-    #print(f"Left Signal Strength: {left_signal_strength} dBm")
-    direction = 'Center'
-    signal_strengths[current_angle] = left_signal_strength
-
-    #Possible bug fix
-    try:
-      #print("TRYING")
-      right_signal_strength = int(right_signal_strength)
-      left_signal_strength = int(left_signal_strength)
-      center_signal_strength = int(center_signal_strength)
-    except(ValueError, TypeError):
-      right_signal_strength = -100
-      center_signal_strength = -100
-      left_signal_strength = -100
-      print("No Signal")
-
-    #find the final posisiton
-    #Right is the strongest
-    if right_signal_strength > left_signal_strength and right_signal_strength >= center_signal_strength:
-        '''send_command('R')
-        time.sleep(1)
-        send_command('R')''' #old way of controlling the servo
-        #current_angle -= 10
-        current_angle -= 2 * step_size  # Move to the right of center from the right
-        send_command(f"{current_angle}")
-        update_angle_display()  # Update the label after changing the angle
-        print("Signal strongest to right")
-
-    #Left is the strongest - honestly this condition really doesn't need to be here
-    elif left_signal_strength > right_signal_strength and left_signal_strength >= center_signal_strength:
-        print("Signal strongest to left")
-
-    #Center is strongest
-    else:
-        #send_command('R') old way of controlling servo
-        #current_angle -= 5
-        current_angle -= step_size
-        send_command(f"{current_angle}")
-        update_angle_display()  # Update the label after changing the angle
-       # print("Signal strongest in center")
-    #result_label.config(text=f"Max Signal Strength: {max_signal_strength} dBm at {current_angle}°")
-    update_angle_display()
-    root.after(snmp_delay, start_automatic_mode)
-    update_polar_plot()
-    return
-
-  else:
-    print("Automatic mode exited. Some condition not met")
-    return
+        print("Automatic mode exited. Some condition not met")
+        return
 
 #If in manual mode, this sends the angle that you type
 def set_angle():
-  """Set angle based on user input in the text entry."""
-  global current_angle
-  global mode
-  global signal_strengths
-  global signal_history
-  if mode == 'M': # Not technicallay necessary, but just in case
-    try:
-      angle = int(angle_entry.get())
-      if 0 <= angle <= 180:
-        root.after(10, lambda: send_command(f"{angle}"))
-        current_angle = angle  # Update current_angle with user input
-        update_angle_display()  # Update the label with the new angle
-        signal_strengths[current_angle] = signal#get_signal_strength() #community_string, ip_address, oid)
-        #signal_history.append(signal_strengths[current_angle])
-        root.after(10, lambda: update_polar_plot())
-        #update_history_plot()
-      else:
-        messagebox.showerror("Invalid Angle", "Please enter an angle between 0 and 180.")
-    except ValueError:
-      messagebox.showerror("Invalid Input", "Please enter a valid integer for the angle.")
+    """Set angle based on user input in the text entry."""
+    global current_angle
+    global mode
+    global signal_strengths
+    global signal_history
+    if mode == 'M': # Not technicallay necessary, but just in case
+        try:
+            angle = int(angle_entry.get())
+            if 0 <= angle <= 180:
+                root.after(10, lambda: send_command(f"{angle}"))
+                current_angle = angle  # Update current_angle with user input
+                update_angle_display()  # Update the label with the new angle
+                signal_strengths[current_angle] = signal#get_signal_strength() #community_string, ip_address, oid)
+                #signal_history.append(signal_strengths[current_angle])
+                root.after(10, lambda: update_polar_plot())
+                #update_history_plot()
+            else:
+                messagebox.showerror("Invalid Angle", "Please enter an angle between 0 and 180.")
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid integer for the angle.")
 
 #initializes the mode change
 def change_mode():
-    """Change mode based on radio button selection."""
-    global mode
-    mode = mode_var.get()
-    #Handles automatic mode
-    if mode == 'A':
-        status_message = "Starting Automatic Mode"
-        update_status_display()
-        print("Switched to Automatic Mode")
-        start_automatic_mode()
-    #Gandles Calibrate mode
-    elif mode == 'C':
-        status_message = "Starting Calibration"
-        update_status_display()
-        calibrate()
-    #Handles Manual mode (TKinter sets everything up for manual mode so we don't really need to do anything here)
-    else:
-        print("Switched to Manual Mode")
-        status_message = "Switched to Manual Mode"
-        update_status_display()
+        """Change mode based on radio button selection."""
+        global mode
+        mode = mode_var.get()
+        #Handles automatic mode
+        if mode == 'A':
+            status_message = "Starting Automatic Mode"
+            update_status_display()
+            print("Switched to Automatic Mode")
+            start_automatic_mode()
+        #Handles Calibration mode
+        elif mode == 'C':
+            status_message = "Starting Calibration"
+            update_status_display()
+            calibrate()
+        #Handles Manual mode (TKinter sets everything up for manual mode so we don't really need to do anything here)
+        else:
+            print("Switched to Manual Mode")
+            status_message = "Switched to Manual Mode"
+            update_status_display()
 
 #Code to change the step size for long range use
 def update_step_size():
@@ -620,89 +618,89 @@ def update_step_size():
 
 #Updates the time between samples using the radio buttons
 def update_time_delay():
-  global snmp_delay
-  snmp_delay = snmp_delay_var.get()
+    global snmp_delay
+    snmp_delay = snmp_delay_var.get()
 
 #controls what happens when the left and right buttos are pressed
 def on_left_arrow():
-  """Move servo left when left button is clicked."""
-  global current_angle
-  global step_size
-  global signal_strengths
-  if mode == 'M':
-    if current_angle < 181-step_size:
-      status_message = "Moving servo to the left"
-      status_label.config(text=f"Status: {status_message}") #don'tcurrent_angle += touch this line or the line below it
-      status_label.update_idletasks()  # Force GUI update
-      current_angle += step_size
-      root.after(10, lambda: send_command(f"{current_angle}"))
-      update_angle_display()  # Update the label with the new angle
+    """Move servo left when left button is clicked."""
+    global current_angle
+    global step_size
+    global signal_strengths
+    if mode == 'M':
+        if current_angle < 181-step_size:
+            status_message = "Moving servo to the left"
+            status_label.config(text=f"Status: {status_message}") #don'tcurrent_angle += touch this line or the line below it
+            status_label.update_idletasks()  # Force GUI update
+            current_angle += step_size
+            root.after(10, lambda: send_command(f"{current_angle}"))
+            update_angle_display()  # Update the label with the new angle
+
+        else:
+            status_message = "Antenna maxed out to the Left"
+            status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+            status_label.update_idletasks()  # Force GUI update
+
+        #Update the plots
+        signal_strengths[current_angle] = signal#get_signal_strength()#community_string, ip_address, oid)
+        #signal_history.append(signal_strengths[current_angle])
+        root.after(10, lambda: update_polar_plot())
+        #update_history_plot()
 
     else:
-      status_message = "Antenna maxed out to the Left"
-      status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-      status_label.update_idletasks()  # Force GUI update
-
-    #Update the plots
-    signal_strengths[current_angle] = signal#get_signal_strength()#community_string, ip_address, oid)
-    #signal_history.append(signal_strengths[current_angle])
-    root.after(10, lambda: update_polar_plot())
-    #update_history_plot()
-
-  else:
-      status_message = "You're in automatic mode! No touchie!"
-      status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-      status_label.update_idletasks()  # Force GUI update
+            status_message = "You're in automatic mode! No touchie!"
+            status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+            status_label.update_idletasks()  # Force GUI update
 
 def on_right_arrow():
-  """Move servo right when right button is clicked."""
-  global current_angle
-  global step_size
-  global signal_strengths
-  global signal
-  #get_signal_strength()#community_string, ip_address, oid)
-  if mode == 'M':
-    if current_angle > step_size-1:
-      print("Right arrow button clicked. Moving servo to the right.")
-      status_message = "Moving servo to the right"
-      status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-      status_label.update_idletasks()  # Force GUI update
-      current_angle -= step_size
-      root.after(10, lambda: send_command(f"{current_angle}"))
-      update_angle_display()  # Update the label with the new angle
+    """Move servo right when right button is clicked."""
+    global current_angle
+    global step_size
+    global signal_strengths
+    global signal
+    #get_signal_strength()#community_string, ip_address, oid)
+    if mode == 'M':
+        if current_angle > step_size-1:
+            print("Right arrow button clicked. Moving servo to the right.")
+            status_message = "Moving servo to the right"
+            status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+            status_label.update_idletasks()  # Force GUI update
+            current_angle -= step_size
+            root.after(10, lambda: send_command(f"{current_angle}"))
+            update_angle_display()  # Update the label with the new angle
+
+        else:
+            current_angle = 0
+            send_command('0')
+            update_angle_display()  # Update the label with the new angle
+            status_message = "Servo maxed out to the Right"
+            status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+            status_label.update_idletasks()  # Force GUI update
+
+        #update the plots
+        signal_strengths[current_angle] = signal#get_signal_strength()#community_string, ip_address, oid)
+        #signal_history.append(signal_strengths[current_angle])
+        root.after(10, lambda: update_polar_plot())
+        #update_history_plot()
 
     else:
-      current_angle = 0
-      send_command('0')
-      update_angle_display()  # Update the label with the new angle
-      status_message = "Servo maxed out to the Right"
-      status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-      status_label.update_idletasks()  # Force GUI update
-
-    #update the plots
-    signal_strengths[current_angle] = signal#get_signal_strength()#community_string, ip_address, oid)
-    #signal_history.append(signal_strengths[current_angle])
-    root.after(10, lambda: update_polar_plot())
-    #update_history_plot()
-
-  else:
-      print("You're in automatic mode! No touchie!")
-      status_message = "You're in automatic mode! No touchie!"
-      status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-      status_label.update_idletasks()  # Force GUI update
+        print("You're in automatic mode! No touchie!")
+        status_message = "You're in automatic mode! No touchie!"
+        status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+        status_label.update_idletasks()  # Force GUI update
 
 #displays the current angle of the antenna
 def update_angle_display():
-  """Update the angle display in the GUI."""
-  angle_label.config(text=f"Current Angle: {current_angle}°")
-  angle_label.update_idletasks()
+    """Update the angle display in the GUI."""
+    angle_label.config(text=f"Current Angle: {current_angle}°")
+    angle_label.update_idletasks()
 
 #displays the status message
 #This code most likely doesn't work, but it isn't hurting anything so it is being left in place
 def update_status_display():
-  """Update the status display in the GUI."""
-  status_label.config(text=f"Status: {status_message}")
-  status_label.update_idletasks()
+    """Update the status display in the GUI."""
+    status_label.config(text=f"Status: {status_message}")
+    status_label.update_idletasks()
 
 #displays the signal strength
 def update_signal_strength_display(current_signal_strength):
@@ -738,11 +736,11 @@ def update_polar_plot():
     angles_rad = np.radians(list(signal_strengths.keys()))
     #strengths = [int(s) for s in signal_strengths.values()]  # Convert all to integers
     for angle, s in signal_strengths.items():
-      try:
-          strengths.append(int(s))
-      except (ValueError, TypeError):
-          strengths.append(-100)
-      #angles_deg.append(angle)
+        try:
+            strengths.append(int(s))
+        except (ValueError, TypeError):
+            strengths.append(-100)
+        #angles_deg.append(angle)
 
     #angles_rad = np.radians(angles_deg)
     line.set_data(angles_rad, strengths)
@@ -773,45 +771,47 @@ def update_polar_plot():
     #print("done updating polar plot")
 
 def update_history_plot():
-  global signal_history, incoming_throughput_history, outgoing_throughput_history
+    global signal_history, incoming_throughput_history, outgoing_throughput_history
 
-  # Clear the previous plot
-  history_fig.clear()
+    # Clear the previous plot
+    history_fig.clear()
 
-  # Create subplots
-  axs = history_fig.subplots(2)
+    # Create subplots
+    axs = history_fig.subplots(2)
 
-  # Plot signal history on the first subplot
-  axs[0].plot(list(range(len(signal_history))), list(signal_history), 'b-')
-  axs[0].set_xlim(0, 120)
-  axs[0].set_ylim(-100, 0)  # Adjust this range based on your signal strength values
-  axs[0].set_title("Signal Strength Over Time")
-  axs[0].set_xlabel("Time (sec)")
-  axs[0].set_ylabel("Signal Strength (dBm)")
+    # Plot signal history on the first subplot
+    axs[0].plot(list(range(len(signal_history))), list(signal_history), 'b-')
+    axs[0].set_xlim(0, 120)
+    axs[0].set_ylim(-100, 0)  # Adjust this range based on your signal strength values
+    axs[0].set_title("Signal Strength Over Time")
+    axs[0].set_xlabel("Time (sec)")
+    axs[0].set_ylabel("Signal Strength (dBm)")
 
-  average_signal = sum(signal_history) / len(signal_history) if signal_history else 0
-  axs[0].text(0.05, 0.95, f"Average: {average_signal:.2f} dBm",
-              transform=axs[0].transAxes, verticalalignment='top',
-              bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+    average_signal = sum(signal_history) / len(signal_history) if signal_history else 0
+    axs[0].text(
+        0.05, 0.95, f"Average: {average_signal:.2f} dBm",
+        transform=axs[0].transAxes, verticalalignment='top',
+        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8)
+    )
 
-  # Plot throughput history on the second subplot
-  axs[1].plot(list(range(len(incoming_throughput_history))), list(incoming_throughput_history), label='Incoming')
-  axs[1].plot(list(range(len(outgoing_throughput_history))), list(outgoing_throughput_history), label='Outgoing')
-  axs[1].set_xlim(0, 120)
-  #axs[1].set_ylim(0, 100)
-  axs[1].set_title("Throughput Over Time")
-  axs[1].set_xlabel("Time (sec)")
-  axs[1].set_ylabel("Throughput (Kbps)")
-  axs[1].legend()
+    # Plot throughput history on the second subplot
+    axs[1].plot(list(range(len(incoming_throughput_history))), list(incoming_throughput_history), label='Incoming')
+    axs[1].plot(list(range(len(outgoing_throughput_history))), list(outgoing_throughput_history), label='Outgoing')
+    axs[1].set_xlim(0, 120)
+    #axs[1].set_ylim(0, 100)
+    axs[1].set_title("Throughput Over Time")
+    axs[1].set_xlabel("Time (sec)")
+    axs[1].set_ylabel("Throughput (Kbps)")
+    axs[1].legend()
 
-  # Layout so plots do not overlap
-  history_fig.tight_layout()
+    # Layout so plots do not overlap
+    history_fig.tight_layout()
 
-  # Update the canvas
-  history_canvas.draw()
+    # Update the canvas
+    history_canvas.draw()
 
-  # Update the plot periodically
-  root.after(4000, update_history_plot)  # Update every second
+    # Update the plot periodically
+    root.after(4000, update_history_plot)  # Update every second
 
 
 def build_ui(root):
@@ -826,33 +826,33 @@ def build_ui(root):
     mode_frame.pack(side='left', padx=10)
     global mode_var
     tk.Radiobutton(mode_frame, text="Automatic", variable=mode_var, value='A',
-                   command=lambda: set_mode('A')).pack(anchor='w')
+                                    command=lambda: set_mode('A')).pack(anchor='w')
     tk.Radiobutton(mode_frame, text="Manual", variable=mode_var, value='M',
-                   command=lambda: set_mode('M')).pack(anchor='w')
+                                    command=lambda: set_mode('M')).pack(anchor='w')
     tk.Radiobutton(mode_frame, text="Calibrate", variable=mode_var, value='C',
-                   command=lambda: set_mode('C')).pack(anchor='w')
+                                    command=lambda: set_mode('C')).pack(anchor='w')
 
     # Step Size
     step_size_frame = tk.LabelFrame(top_frame, text="Step Size")
     step_size_frame.pack(side='left', padx=10)
     global step_size_var
     tk.Radiobutton(step_size_frame, text="Close Range (Big Steps)", variable=step_size_var, value=20,
-                   command=update_step_size).pack(anchor='w')
+                                    command=update_step_size).pack(anchor='w')
     tk.Radiobutton(step_size_frame, text="Medium Range (Smaller Steps)", variable=step_size_var, value=15,
-                   command=update_step_size).pack(anchor='w')
+                                    command=update_step_size).pack(anchor='w')
     tk.Radiobutton(step_size_frame, text="Long Range (Small Steps)", variable=step_size_var, value=10,
-                   command=update_step_size).pack(anchor='w')
+                                    command=update_step_size).pack(anchor='w')
 
     # Time Adjustment
     time_frame = tk.LabelFrame(top_frame, text="Time Adjustment")
     time_frame.pack(side='left', padx=10)
     global snmp_delay
     tk.Radiobutton(time_frame, text="Very slow search", variable=snmp_delay_var, value=12000,
-                  command=update_time_delay).pack(anchor='w')
+                                command=update_time_delay).pack(anchor='w')
     tk.Radiobutton(time_frame, text="Slow Search", variable=snmp_delay_var, value=10000,
-                  command=update_time_delay).pack(anchor='w')
+                                command=update_time_delay).pack(anchor='w')
     tk.Radiobutton(time_frame, text="Fast search", variable=snmp_delay_var, value=8000,
-                  command=update_time_delay).pack(anchor='w')
+                                command=update_time_delay).pack(anchor='w')
 
     # --- Manual Controls Frame ---
     manual_frame = tk.LabelFrame(root, text="Manual Controls")
