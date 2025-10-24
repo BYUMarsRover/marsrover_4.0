@@ -74,7 +74,7 @@ prev_rx_bytes = 0  # Store the last recorded incoming throughput
 prev_tx_bytes = 0  # Store the last recorded outgoing throughput
 curr_time = 0
 prev_time = 0
-port = '/dev/ttyUSB0'  # Replace with your actual port
+port = '/dev/rover/wiggleArduino'
 baudrate = 9600
 
 
