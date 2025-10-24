@@ -58,7 +58,7 @@ max_angles = []
 calibrate_start = True
 wait_time = round(((step_size * 0.03) + 2) * 1000) #Time for the antenna to move and settle
 # Plotting Globals for matplot
-signal_strengths = {angle: -100 for angle in range (0, 180, 1)} # Dictionary to map angles to signal
+signal_strengths = {angle: -np.inf for angle in range (0, 180, 1)} # Dictionary to map angles to signal
 signal_history = deque(maxlen=120)  # Store values (FIFO behavior) - change maxlen if we need more data
 #Globals specific to automatic mode
 right_signal_strength = -np.inf
@@ -66,17 +66,14 @@ left_signal_strength = -np.inf
 center_signal_strength = -np.inf
 current_signal_strength = -np.inf
 snmp_delay = 10000 #min sample time based on our testing
-last_octets_in = 0 # For calculating throughput
-last_octets_out = 0 # for calculating throughput
-timeout_counter = 0 #for calculating throughput
 rx_rate_history = deque(maxlen=120)  # Store incoming throughput values
 tx_rate_history = deque(maxlen=120)  # Store outgoing throughput values
-prev_bytes_received = 0  # Store the last recorded incoming throughput
-prev_bytes_sent = 0  # Store the last recorded outgoing throughput
-snmp_data = {} #Creates a dictionary to map the snmp data oids (keys) to their values to allow easy access
-last_recorded_incoming = 0 #Stores the last throughput values to see if they have changed
-last_recorded_outgoing = 0
-last_time = 0
+rx_bytes = 0
+tx_bytes = 0
+prev_rx_bytes = 0  # Store the last recorded incoming throughput
+prev_tx_bytes = 0  # Store the last recorded outgoing throughput
+curr_time = 0
+prev_time = 0
 port = '/dev/ttyUSB0'  # Replace with your actual port
 baudrate = 9600
 
@@ -178,25 +175,20 @@ def snmp():
     #Global variables
     global signal
     global simulate_mode
-    global snmp_data
-    global timeout_counter
-    global rx_rate_history
-    global tx_rate_history
-    global prev_bytes_received
-    global prev_bytes_sent
-    global last_recorded_incoming
-    global last_recorded_outgoing
-    global last_time
+    global rx_rate_history, tx_rate_history
+    global rx_bytes, tx_bytes
+    global prev_rx_bytes, prev_tx_bytes
+    global curr_time, prev_time
 
     # OIDs for SNMP query
     #base_oid = ".1.3.6.1.4.1.41112.1.4.7.1"
     signal_strength_oid = "iso.3.6.1.4.1.41112.1.4.7.1.3.1.104.114.81.132.178.5"
-    #rx_throughput_oid = "iso.3.6.1.4.1.41112.1.4.7.1.13.1.104.114.81.132.178.5"
-    #tx_throughput_oid = "iso.3.6.1.4.1.41112.1.4.7.1.14.1.104.114.81.132.178.5"
-    #timer_oid = "iso.3.6.1.4.1.41112.1.4.7.1.15.1.104.114.81.132.178.5"
+    rx_throughput_oid = "iso.3.6.1.4.1.41112.1.4.7.1.13.1.104.114.81.132.178.5"
+    tx_throughput_oid = "iso.3.6.1.4.1.41112.1.4.7.1.14.1.104.114.81.132.178.5"
+    timer_oid = "iso.3.6.1.4.1.41112.1.4.7.1.15.1.104.114.81.132.178.5"
     distance_oid = "iso.3.6.1.4.1.41112.1.4.7.1.6.1.104.114.81.132.178.5"
-    rx_rate_oid = "iso.3.6.1.4.1.41112.1.4.7.1.12.1.104.114.81.132.178.5"
-    tx_rate_oid = "iso.3.6.1.4.1.41112.1.4.7.1.11.1.104.114.81.132.178.5"
+    rx_capacity_oid = "iso.3.6.1.4.1.41112.1.4.7.1.12.1.104.114.81.132.178.5"
+    tx_capacity_oid = "iso.3.6.1.4.1.41112.1.4.7.1.11.1.104.114.81.132.178.5"
 
     # Allows us to run the code without getting data from the antenna
     if simulate_mode:
@@ -208,78 +200,46 @@ def snmp():
     try:
         # Signal strength
         signal = int(snmpSession.get(signal_strength_oid).value) or -np.inf
-        signal_history.append(signal)
         update_signal_strength_display(signal)
 
         # Distance
         distance = int(snmpSession.get(distance_oid).value) or np.inf
-        distance_label.config(text=f"Distance: {distance} m")
+        distance_label.config(text=f"Distance: {distance} m") # TODO: is distance reported in meters?
         distance_label.update_idletasks()
 
-        # Rx/Tx Rates TODO: fix this to dynamically calculate from bytes sent/received and time. Current OID gives MCS max rate which isn't useful
-        rx_rate = int(snmpSession.get(rx_rate_oid).value) or 0
+        # Rx/Tx Rates
+        rx_capacity = int(snmpSession.get(rx_capacity_oid).value)/1e6 or 0
+        tx_capacity = int(snmpSession.get(tx_capacity_oid).value)/1e6 or 0
+
+        prev_rx_bytes = rx_bytes
+        prev_tx_bytes = tx_bytes
+        rx_bytes = int(snmpSession.get(rx_throughput_oid).value) or 0
+        tx_bytes = int(snmpSession.get(tx_throughput_oid).value) or 0
+
+        prev_time = curr_time
+        curr_time = int(snmpSession.get(timer_oid).value)
+
+        if prev_time != 0:
+            time_interval = (curr_time - prev_time) / 100  # Convert to seconds
+            if time_interval > 0:
+                rx_rate = ((rx_bytes - prev_rx_bytes) / time_interval) * 8 / 1000  # kbps
+                tx_rate = ((tx_bytes - prev_tx_bytes) / time_interval) * 8 / 1000  # kbps
+            else:
+                rx_rate = tx_rate = 0
+        else:
+            rx_rate = tx_rate = 0
+
+        # Update histories
+        signal_history.append(signal)
         rx_rate_history.append(rx_rate)
-        tx_rate = int(snmpSession.get(tx_rate_oid).value) or 0
         tx_rate_history.append(tx_rate)
-        throughput_label.config(text=f"Rx: {rx_rate} B/s, Tx: {tx_rate} B/s")
-        throughput_label.update_idletasks()
-
-        # # Throughput and timer handling (kept for reference; delete when you implement dynamic rate calculation with easysnmp)
-        # timeout_counter += 1
-        # timer_input = snmp_data.get(timer_oid, snmp_data.get(timer_oid.replace('iso', '1') if timer_oid.startswith('iso') else timer_oid, ''))
-        # match = re.search(r'\d+', str(timer_input))
-        # nums = ''
-        # if match:
-        #     nums = match.group()
-        # else:
-        #     root.after(1000, snmp)
-        #     return None
-
-        # time_running = (int(nums)) / 100
-        # time_interval = time_running - last_time
-        # if time_interval != 0:
-        #     try:
-        #         bytes_received = int(snmp_data.get(throughput_in_oid, snmp_data.get(throughput_in_oid.replace('iso', '1') if throughput_in_oid.startswith('iso') else throughput_in_oid, 0)))
-        #     except (TypeError, ValueError):
-        #         bytes_received = 0
-        #     try:
-        #         bytes_sent = int(snmp_data.get(throughput_out_oid, snmp_data.get(throughput_out_oid.replace('iso', '1') if throughput_out_oid.startswith('iso') else throughput_out_oid, 0)))
-        #     except (TypeError, ValueError):
-        #         bytes_sent = 0
-
-        #     incoming_throughput = (((bytes_received - prev_bytes_received) / time_interval) * 8) / 1000
-        #     outgoing_throughput = (((bytes_sent - prev_bytes_sent) / time_interval) * 8) / 1000
-        #     prev_bytes_received = bytes_received
-        #     prev_bytes_sent = bytes_sent
-        #     last_recorded_incoming = incoming_throughput
-        #     last_recorded_outgoing = outgoing_throughput
-
-        #     if incoming_throughput is not None and outgoing_throughput is not None:
-        #         if incoming_throughput > 0.01 and outgoing_throughput > 0.01:
-        #             throughput_label.config(text=f"Incoming Throughput: {int(incoming_throughput)} Kbps\nOutgoing Throughput: {int(outgoing_throughput)} Kbps")
-        #             timeout_counter = 0
-        #             incoming_throughput_history.append(incoming_throughput)
-        #             outgoing_throughput_history.append(outgoing_throughput)
-        #         elif timeout_counter >= 10:
-        #             throughput_label.config(text=f"Incoming Throughput: {int(incoming_throughput)} Kbps\nOutgoing Throughput: {int(outgoing_throughput)} Kbps")
-        #             incoming_throughput_history.append(0)
-        #             outgoing_throughput_history.append(0)
-        #         else:
-        #             incoming_throughput_history.append(last_recorded_incoming)
-        #             outgoing_throughput_history.append(last_recorded_outgoing)
-        #     else:
-        #         throughput_label.config(text="Error fetching throughput data.")
-        # else:
-        #     incoming_throughput_history.append(last_recorded_incoming)
-        #     outgoing_throughput_history.append(last_recorded_outgoing)
-
-        # last_time = time_running
-        # throughput_label.update_idletasks()
+        capacity_label.config(text=f"Rx: {rx_capacity} Mbps | Tx: {tx_capacity} Mbps")
+        capacity_label.update_idletasks()
 
     except Exception as e:
         print(f"SNMP error or Rover unreachable: {e}")
-        status_message = "Is the Rover on? No signal"
-        signal = "Disconnected"
+        status_message = "No signal"
+        signal = -np.inf
         update_signal_strength_display(signal)
         status_label.config(text=f"Status: {status_message}")
         status_label.update_idletasks()
@@ -287,8 +247,8 @@ def snmp():
         tx_rate_history.append(0)
         signal_history.append(-np.inf)
 
-    root.after(1000, snmp)
-    return
+    finally:
+        root.after(1000, snmp)
 
 def calibrate():
     #global variables
@@ -390,7 +350,7 @@ def calibrate():
 
         else:
             print("NO ANGLES FOUND! SOMETHING WENT WRONG")
-            status_message = "SOMETHING WENT WRONG"
+            status_message = "SOMETHING WENT WRONG" # TODO: make more descriptive
             status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
             status_label.update_idletasks()  # Force GUI update
             time.sleep(2) #give some time for someone to see the error message
@@ -558,25 +518,25 @@ def set_angle():
 
 #initializes the mode change
 def change_mode():
-        """Change mode based on radio button selection."""
-        global mode
-        mode = mode_var.get()
-        #Handles automatic mode
-        if mode == 'A':
-            status_message = "Starting Automatic Mode"
-            update_status_display()
-            print("Switched to Automatic Mode")
-            automatic_mode()
-        #Handles Calibration mode
-        elif mode == 'C':
-            status_message = "Starting Calibration"
-            update_status_display()
-            calibrate()
-        #Handles Manual mode (TKinter sets everything up for manual mode so we don't really need to do anything here)
-        else:
-            print("Switched to Manual Mode")
-            status_message = "Switched to Manual Mode"
-            update_status_display()
+    """Change mode based on radio button selection."""
+    global mode, status_message
+    mode = mode_var.get()
+    #Handles automatic mode
+    if mode == 'A':
+        status_message = "Starting Automatic Mode"
+        update_status_display()
+        print("Switched to Automatic Mode")
+        automatic_mode()
+    #Handles Calibration mode
+    elif mode == 'C':
+        status_message = "Starting Calibration"
+        update_status_display()
+        calibrate()
+    #Handles Manual mode (TKinter sets everything up for manual mode so we don't really need to do anything here)
+    else:
+        print("Switched to Manual Mode")
+        status_message = "Switched to Manual Mode"
+        update_status_display()
 
 #Code to change the step size for long range use
 def update_step_size():
@@ -616,9 +576,9 @@ def on_left_arrow():
         #update_history_plot()
 
     else:
-            status_message = "You're in automatic mode! No touchie!"
-            status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
-            status_label.update_idletasks()  # Force GUI update
+        status_message = "You're in automatic mode! No touchie!"
+        status_label.config(text=f"Status: {status_message}") #don't touch this line or the line below it
+        status_label.update_idletasks()  # Force GUI update
 
 def on_right_arrow():
     """Move servo right when right button is clicked."""
@@ -648,7 +608,7 @@ def on_right_arrow():
         #update the plots
         signal_strengths[current_angle] = signal#get_signal_strength()#community_string, ip_address, oid)
         #signal_history.append(signal_strengths[current_angle])
-        root.after(10, lambda: update_polar_plot())
+        root.after(10, lambda: update_polar_plot()) # TODO: is the lambda necessary here?
         #update_history_plot()
 
     else:
@@ -671,26 +631,23 @@ def update_status_display():
     status_label.update_idletasks()
 
 #displays the signal strength
-def update_signal_strength_display(current_signal_strength):
-    # Try to convert signal to an integer if it's a string
-    try:
-        signal_value = int(current_signal_strength)  # Convert to integer
-    except ValueError:
-        # If it's not a valid integer, that means the rover disconnected
-        signal_strength_label.config(text="Rover Disconnected", fg="red")
-        return
+def update_signal_strength_display(signal_strength):
+    # if not np.isfinite(signal_strength):
+    #     # If -oo, that means the rover disconnected
+    #     signal_strength_label.config(text="Rover Disconnected", fg="red")
+    #     return
 
     # Define signal strength thresholds
-    if signal_value >= -40:  # Strong signal
+    if signal_strength >= -40:  # Strong signal
         color = "green"
-    elif signal_value >= -70: # Weak signal
+    elif signal_strength >= -70: # Weak signal
         color = "orange"
     else:  # Super Weak signal
         color = "red"
 
     # Update the label with signal strength and apply color
     signal_strength_label.config(
-        text=f"Signal Strength: {signal_value} dBm",
+        text=f"Signal Strength: {signal_strength} dBm",
         fg=color  # Change the text color based on the signal strength
     )
     #print(f"Signal strength updated to: {signal_value}")
@@ -862,7 +819,7 @@ def build_ui(root):
     top_info_frame = tk.Frame(root)
     top_info_frame.pack(side='top', fill='x', padx=10, pady=5)
 
-    global angle_label, status_label, signal_strength_label, throughput_label
+    global angle_label, status_label, signal_strength_label, capacity_label
     angle_label = tk.Label(top_info_frame, text=f"Current Angle: {current_angle}°", font=("Arial", 14))
     angle_label.pack(side='top', anchor='center', pady=2)
 
@@ -872,8 +829,8 @@ def build_ui(root):
     signal_strength_label = tk.Label(top_info_frame, text="Signal Strength: ???", font=("Arial", 14))
     signal_strength_label.pack(side='top', anchor='center', pady=2)
 
-    throughput_label = tk.Label(top_info_frame, text="Incoming: 0.00 Mbps | Outgoing: 0.00 Mbps", font=("Arial", 14))
-    throughput_label.pack(side='top', anchor='center', pady=2)
+    capacity_label = tk.Label(top_info_frame, text="Rx: 0.00 Mbps | Tx: 0.00 Mbps", font=("Arial", 14))
+    capacity_label.pack(side='top', anchor='center', pady=2)
 
 
     # --- Plot Frame for Polar and History ---
