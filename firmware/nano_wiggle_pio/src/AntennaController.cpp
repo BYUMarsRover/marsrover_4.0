@@ -27,50 +27,50 @@ char receivedChar;    // For serial communication to receive instruction
 
 // Check Battery voltage and returns true if it's low
 bool isBatteryLow() {
-  // Use a static variable to track the last time we sent data to Serial.
-  static unsigned long lastBatterySerialTime = 0;
+    // Use a static variable to track the last time we sent data to Serial.
+    static unsigned long lastBatterySerialTime = 0;
 
-  // Read the analog value from the battery pin.
-  int sensorValue = analogRead(BATTERY_PIN);
-  
-  // Convert the analog reading to voltage.
-  // (Assumes a 5V reference; adjust if using a different voltage.)
-  float voltage = sensorValue * (5.0 / 1023.0) * DIVIDER_RATIO;
-  
-  // Send battery voltage over Serial once every 1000ms.
-  unsigned long currentMillis = millis();
-  if (currentMillis - lastBatterySerialTime >= 1000) {
+    // Read the analog value from the battery pin.
+    int sensorValue = analogRead(BATTERY_PIN);
     
-    Serial.println("Battery Voltage: " + String(voltage));
-    //Serial.print("Battery Voltage: ");
-    //Serial.println(voltage);
-    lastBatterySerialTime = currentMillis;
-  }
-  
-  // Return true if the battery voltage is below the threshold.
-  return (voltage < BATTERY_LOW_THRESHOLD);
+    // Convert the analog reading to voltage.
+    // (Assumes a 5V reference; adjust if using a different voltage.)
+    float voltage = sensorValue * (5.0 / 1023.0) * DIVIDER_RATIO;
+    
+    // Send battery voltage over Serial once every 1000ms.
+    unsigned long currentMillis = millis();
+    if (currentMillis - lastBatterySerialTime >= 1000) {
+        
+        Serial.println("Battery Voltage: " + String(voltage));
+        //Serial.print("Battery Voltage: ");
+        //Serial.println(voltage);
+        lastBatterySerialTime = currentMillis;
+    }
+    
+    // Return true if the battery voltage is below the threshold.
+    return (voltage < BATTERY_LOW_THRESHOLD);
 }
 
 // Normal battery blink: one blink every second.
 // Pattern: LED ON for the first 100ms of every 1000ms cycle, then OFF.
 void updateNormalLEDBlink() {
-  //unsigned long currentMillis = millis();
-  //if ((currentMillis % 1000) < 50) {
-  //  digitalWrite(LED_PIN, HIGH);
-  //} else {
-  //  digitalWrite(LED_PIN, LOW);
-  //}
+    //unsigned long currentMillis = millis();
+    //if ((currentMillis % 1000) < 50) {
+    //  digitalWrite(LED_PIN, HIGH);
+    //} else {
+    //  digitalWrite(LED_PIN, LOW);
+    //}
 
-  
-  unsigned long cycleTime = 5000; // Total period for the pattern in ms.
-  unsigned long currentTime = millis() % cycleTime;
+    
+    unsigned long cycleTime = 5000; // Total period for the pattern in ms.
+    unsigned long currentTime = millis() % cycleTime;
 
-  if (currentTime < 150) {
-    digitalWrite(LED_PIN, HIGH);
-  } else {
-    // From 150ms to 5000ms, LED remains off (including the off period after blink 3)
-    digitalWrite(LED_PIN, LOW);
-  }
+    if (currentTime < 150) {
+        digitalWrite(LED_PIN, HIGH);
+    } else {
+        // From 150ms to 5000ms, LED remains off (including the off period after blink 3)
+        digitalWrite(LED_PIN, LOW);
+    }
 }
 
 // Low battery blink: three quick blinks then a pause.
@@ -81,168 +81,168 @@ void updateNormalLEDBlink() {
 //   - Pause: OFF 900–1900ms
 //   NOTE: Because some functions are blocking, this timing will not be exact
 void updateLowBatteryLEDBlink() {
-  unsigned long cycleTime = 1900; // Total period for the pattern in ms.
-  unsigned long currentTime = millis() % cycleTime;
-  
-  if (currentTime < 150) {
-    digitalWrite(LED_PIN, HIGH);
-  } else if (currentTime < 300) {
-    digitalWrite(LED_PIN, LOW);
-  } else if (currentTime < 450) {
-    digitalWrite(LED_PIN, HIGH);
-  } else if (currentTime < 600) {
-    digitalWrite(LED_PIN, LOW);
-  } else if (currentTime < 750) {
-    digitalWrite(LED_PIN, HIGH);
-  } else {
-    // From 750ms to 1900ms, LED remains off (including the off period after blink 3)
-    digitalWrite(LED_PIN, LOW);
-  }
+    unsigned long cycleTime = 1900; // Total period for the pattern in ms.
+    unsigned long currentTime = millis() % cycleTime;
+    
+    if (currentTime < 150) {
+        digitalWrite(LED_PIN, HIGH);
+    } else if (currentTime < 300) {
+        digitalWrite(LED_PIN, LOW);
+    } else if (currentTime < 450) {
+        digitalWrite(LED_PIN, HIGH);
+    } else if (currentTime < 600) {
+        digitalWrite(LED_PIN, LOW);
+    } else if (currentTime < 750) {
+        digitalWrite(LED_PIN, HIGH);
+    } else {
+        // From 750ms to 1900ms, LED remains off (including the off period after blink 3)
+        digitalWrite(LED_PIN, LOW);
+    }
 }
 
 void setup() {
-  Serial.begin(9600);          // Initialize serial communication
+    Serial.begin(9600);          // Initialize serial communication
 
-  servo.attach(SERVO_PIN);    // Attach servo to pin 9
-  servo.write(60); // 60 makes it go to the midpoint (see the mapping down in moveServoSlowly())
-  Serial.println("Attatched servo, waiting...");
-  delay(10);
-  Serial.println("Doing rest of setup");
-  pinMode(SWITCH_PIN, INPUT);   // Set the switch pin as an input
-  pinMode(BUTTON_PIN, INPUT_PULLUP); // Set the button pin as input with pull-up resistor
-  pinMode(LED_PIN, OUTPUT);
-  angle = 90;
+    servo.attach(SERVO_PIN);    // Attach servo to pin 9
+    servo.write(60); // 60 makes it go to the midpoint (see the mapping down in moveServoSlowly())
+    Serial.println("Attatched servo, waiting...");
+    delay(10);
+    Serial.println("Doing rest of setup");
+    pinMode(SWITCH_PIN, INPUT);   // Set the switch pin as an input
+    pinMode(BUTTON_PIN, INPUT_PULLUP); // Set the button pin as input with pull-up resistor
+    pinMode(LED_PIN, OUTPUT);
+    angle = 90;
 
-  Serial.println("Setup complete.");
+    Serial.println("Setup complete.");
 }
 
 int smoothAnalogRead(int pin) {
-  int total = 0;
-  for (int i = 0; i < 15; i++) {
-    total += analogRead(pin);
-    delay(15);  // Small delay between readings
-  }
-  return total / 15;  // Return the averaged value
+    int total = 0;
+    for (int i = 0; i < 15; i++) {
+        total += analogRead(pin);
+        delay(15);  // Small delay between readings
+    }
+    return total / 15;  // Return the averaged value
 }
 
 void moveServoSlowly(int targetVal) {
-  int mappedVal = map(targetVal, 0, 270, 0, 180); // The servo is a 270 degree servo, so we map the 0-180 values
-  mappedVal = constrain(mappedVal, 0, 180);       // to 0-270 and then constrain to make sure it's in range
-  //Serial.println(targetVal);
-  if (digitalRead(SWITCH_SAMPLE_PIN) == HIGH) {
-    // Serial.println("Servo running...");
-    // Move the servo in small increments
-    int stepDelay = 40;  // Delay between each step in milliseconds
-    int stepSize = 1;    // How much to move in each step
-  
-    if (mappedVal > previousVal) {
-      if (mappedVal < 5) {
-        previousVal = 270; // Assumes something went wrong, zeroes all the way (ie gust of wind messed up antenna)
-      }
-      for (int pos = previousVal; pos <= mappedVal; pos += stepSize) {
-        if (digitalRead(SWITCH_SAMPLE_PIN) == LOW) {
-          previousVal = pos;
-          return;
+    int mappedVal = map(targetVal, 0, 270, 0, 180); // The servo is a 270 degree servo, so we map the 0-180 values
+    mappedVal = constrain(mappedVal, 0, 180);       // to 0-270 and then constrain to make sure it's in range
+    //Serial.println(targetVal);
+    if (digitalRead(SWITCH_SAMPLE_PIN) == HIGH) {
+        // Serial.println("Servo running...");
+        // Move the servo in small increments
+        int stepDelay = 40;  // Delay between each step in milliseconds
+        int stepSize = 1;    // How much to move in each step
+    
+        if (mappedVal > previousVal) {
+            if (mappedVal < 5) {
+                previousVal = 270; // Assumes something went wrong, zeroes all the way (ie gust of wind messed up antenna)
+            }
+            for (int pos = previousVal; pos <= mappedVal; pos += stepSize) {
+                if (digitalRead(SWITCH_SAMPLE_PIN) == LOW) {
+                    previousVal = pos;
+                    return;
+                }
+                servo.write(pos);
+                delay(stepDelay);
+            }
+        } else {
+            for (int pos = previousVal; pos >= mappedVal; pos -= stepSize) {
+                if (digitalRead(SWITCH_SAMPLE_PIN) == LOW) {
+                    previousVal = pos;
+                    return;
+                }
+                servo.write(pos);
+                delay(stepDelay);
+            }
         }
-        servo.write(pos);
-        delay(stepDelay);
-      }
-    } else {
-      for (int pos = previousVal; pos >= mappedVal; pos -= stepSize) {
-        if (digitalRead(SWITCH_SAMPLE_PIN) == LOW) {
-          previousVal = pos;
-          return;
-        }
-        servo.write(pos);
-        delay(stepDelay);
-      }
+    
+        previousVal = mappedVal;  // Update previous value after movement is complete
+        angle = targetVal; // This is redundant and a bit messy. Clean up later
     }
-  
-    previousVal = mappedVal;  // Update previous value after movement is complete
-    angle = targetVal; // This is redundant and a bit messy. Clean up later
-  }
 }
 
 void serialControl() {
-  const int stepSize = 5;
+    const int stepSize = 5;
 
-  if (Serial.available() > 0) {
-    char received = Serial.peek(); // Read the incoming byte
+    if (Serial.available() > 0) {
+        char received = Serial.peek(); // Read the incoming byte
 
 
 
-    if (isDigit(received)) {
-      int newAngle = Serial.parseInt(); // Will parse the rest of the digits
-      Serial.print("Received integer: ");
-      Serial.println(angle);
-      if (newAngle >= 0 && newAngle <= 180) {
-        Serial.println("Moving to: " + String(newAngle) + " degrees");
-        angle = newAngle;
-        moveServoSlowly(angle);
-      } else {
-        Serial.println("Invalid angle. Please send a value between 0 and 180.");
-      }
-    } else {
-      switch (toupper(received)) {
-        case 'H':
-          Serial.println("Hello from Arduino");
-          break;
-        case 'R':
-          angle = max(0, angle - stepSize);
-          Serial.println("Moving Right to: " + String(angle) + " degrees");
-          moveServoSlowly(angle);
-          break;
-        case 'L':
-          angle = min(180, angle + stepSize);
-          Serial.println("Moving Left to: " + String(angle) + " degrees");
-          moveServoSlowly(angle);
-          break;
-        default:
-          // Serial.println("Unknown command"); // This reads \n and stuff which screws it up
-          break;
-      }
+        if (isDigit(received)) {
+            int newAngle = Serial.parseInt(); // Will parse the rest of the digits
+            Serial.print("Received integer: ");
+            Serial.println(angle);
+            if (newAngle >= 0 && newAngle <= 180) {
+                Serial.println("Moving to: " + String(newAngle) + " degrees");
+                angle = newAngle;
+                moveServoSlowly(angle);
+            } else {
+                Serial.println("Invalid angle. Please send a value between 0 and 180.");
+            }
+        } else {
+            switch (toupper(received)) {
+                case 'H':
+                    Serial.println("Hello from Arduino");
+                    break;
+                case 'R':
+                    angle = max(0, angle - stepSize);
+                    Serial.println("Moving Right to: " + String(angle) + " degrees");
+                    moveServoSlowly(angle);
+                    break;
+                case 'L':
+                    angle = min(180, angle + stepSize);
+                    Serial.println("Moving Left to: " + String(angle) + " degrees");
+                    moveServoSlowly(angle);
+                    break;
+                default:
+                    // Serial.println("Unknown command"); // This reads \n and stuff which screws it up
+                    break;
+            }
+        }
+        // Flush the buffer to remove unwanted characters
+        while (Serial.available() > 0) {
+            Serial.read();  // Discard remaining data (like \n or \r)
+        }
     }
-    // Flush the buffer to remove unwanted characters
-    while (Serial.available() > 0) {
-      Serial.read();  // Discard remaining data (like \n or \r)
-    }
-  }
 }
 
 
 
 void potentiometerControl() {
-  val = smoothAnalogRead(POT_PIN);   // Read the potentiometer
+    val = smoothAnalogRead(POT_PIN);   // Read the potentiometer
 
-  val = map(val, 0, 1023, 180, 0);
-  // Map potentiometer value to servo range
+    val = map(val, 0, 1023, 180, 0);
+    // Map potentiometer value to servo range
 
-  if (abs(val - previousVal) > 2) {
-    moveServoSlowly(val);  // Call function to move the servo slowly
-  }
+    if (abs(val - previousVal) > 2) {
+        moveServoSlowly(val);  // Call function to move the servo slowly
+    }
 }
 
 void loop() {
-  // Read the state of the control switch
-  int switchState = digitalRead(SWITCH_PIN);
-  
-  if (switchState == HIGH) {
-    // Manual (potentiometer) control mode:
-    potentiometerControl();
-    // LED: Solid ON to indicate manual mode.
-    digitalWrite(LED_PIN, HIGH);
-  } else {
-    // Serial control mode:
-    serialControl();
-    // In Serial mode, the LED will blink:
-    // - Normal battery: one blink per second.
-    // - Low battery: 3 quick blinks then a pause.
-    if (isBatteryLow()) {
-      updateLowBatteryLEDBlink();
+    // Read the state of the control switch
+    int switchState = digitalRead(SWITCH_PIN);
+    
+    if (switchState == HIGH) {
+        // Manual (potentiometer) control mode:
+        potentiometerControl();
+        // LED: Solid ON to indicate manual mode.
+        digitalWrite(LED_PIN, HIGH);
     } else {
-      updateNormalLEDBlink();
+        // Serial control mode:
+        serialControl();
+        // In Serial mode, the LED will blink:
+        // - Normal battery: one blink per second.
+        // - Low battery: 3 quick blinks then a pause.
+        if (isBatteryLow()) {
+            updateLowBatteryLEDBlink();
+        } else {
+            updateNormalLEDBlink();
+        }
     }
-  }
-  
-  delay(10);  // Short delay for stability.
+    
+    delay(10);  // Short delay for stability.
 }
