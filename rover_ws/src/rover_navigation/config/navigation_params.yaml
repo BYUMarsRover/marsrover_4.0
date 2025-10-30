@@ -131,18 +131,18 @@ controller_server:
       debug_trajectory_details: True
       min_vel_x: 0.0
       min_vel_y: 0.0
-      max_vel_x: 0.52
+      max_vel_x: 1.5
       max_vel_y: 0.0
-      max_vel_theta: 2.0
+      max_vel_theta: 3.0
       min_speed_xy: 0.0
-      max_speed_xy: 0.52
+      max_speed_xy: 1.5
       min_speed_theta: 0.0
-      acc_lim_x: 2.5
+      acc_lim_x: 4.5
       acc_lim_y: 0.0
-      acc_lim_theta: 3.2
-      decel_lim_x: -2.5
+      acc_lim_theta: 4.0
+      decel_lim_x: -4.5
       decel_lim_y: 0.0
-      decel_lim_theta: -3.2
+      decel_lim_theta: -4.0
       vx_samples: 20
       vy_samples: 5
       vtheta_samples: 20

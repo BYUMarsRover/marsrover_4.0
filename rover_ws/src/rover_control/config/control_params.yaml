@@ -13,12 +13,12 @@
     axis_linear.z: -1 # (int, default: -1)
 
     # scale_linear.<axis> Scale to apply to joystick linear axis for regular-speed movement.
-    scale_linear.x: 1.0 # (double, default: 0.5)
+    scale_linear.x: 0.5 # (double, default: 0.5)
     scale_linear.y: 0.0 # (double, default: 0.0)
     scale_linear.z: 0.0 # (double, default: 0.0)
 
     # scale_linear_turbo.<axis> Scale to apply to joystick linear axis for high-speed movement.
-    scale_linear_turbo.x: 2.0 # (double, default: 1.0)
+    scale_linear_turbo.x: 1.0 # (double, default: 1.0)
     scale_linear_turbo.y: 0.0 # (double, default: 0.0)
     scale_linear_turbo.z: 0.0 # (double, default: 0.0)
 
@@ -28,12 +28,12 @@
     axis_angular.roll: -1 # (int, default: -1)
 
     # scale_angular.<axis> Scale to apply to joystick angular axis.
-    scale_angular.yaw: 1.0 # (double, default: 0.5)
+    scale_angular.yaw: 0.5 # (double, default: 0.5)
     scale_angular.pitch: 0.0 # (double, default: 0.0)
     scale_angular.roll: 0.0 # (double, default: 0.0)
 
     # scale_angular_turbo.<axis> Scale to apply to joystick angular axis for high-speed movement.
-    scale_angular_turbo.yaw: 2.0 # (double, default: 1.0)
+    scale_angular_turbo.yaw: 1.0 # (double, default: 1.0)
     scale_angular_turbo.pitch: 0.0 # (double, default: 0.0)
     scale_angular_turbo.roll: 0.0 # (double, default: 0.0)
 
