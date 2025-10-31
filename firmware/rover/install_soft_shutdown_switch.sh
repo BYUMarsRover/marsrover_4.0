@@ -1,21 +1,19 @@
 #!/bin/bash
 
-# This script should be run on the rover to install a systemd service monitoring pin 40 and triggering soft shutdown. If gpiod is not already installed, this script requires internet access.
-
-sudo apt install -y gpiod
+# This script should be run on the rover to install a systemd service monitoring pin 7 and triggering soft shutdown.
 
 echo "#!/bin/bash
 
-# This script monitors pin 40 and triggers a soft shutdown when the pin is activated.
+# This script monitors pin 7 and triggers a soft shutdown when the pin is activated.
 
-SOFT_SHUTDOWN_PIN=40
+SOFT_SHUTDOWN_PIN=7 # Pin 7 is pull-down by default
 PIN_PATH="/sys/class/gpio/gpio$SOFT_SHUTDOWN_PIN"
 
 echo $SOFT_SHUTDOWN_PIN > /sys/class/gpio/export
 echo "in" > $PIN_PATH/direction
 
 while true; do
-    if [ "$(cat $PIN_PATH/value)" -eq 0 ]; then
+    if [ "$(cat $PIN_PATH/value)" -eq 1 ]; then
         echo "Soft shutdown triggered"
         sudo shutdown -h now
         break
