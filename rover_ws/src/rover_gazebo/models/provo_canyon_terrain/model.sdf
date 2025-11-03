@@ -1,0 +1,69 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="provo_canyon_terrain">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <surface>
+          <contact>
+            <collide_bitmask>0x01</collide_bitmask>
+            <ode>
+              <max_vel>0.1</max_vel>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+            </ode>
+          </friction>
+        </surface>
+        <geometry>
+          <heightmap>
+            <uri>model://provo_canyon_terrain/provo_canyon_heightmap.png</uri>
+            <size>868 1044 138.87</size>
+            <pos>0 0 -69.435</pos>
+          </heightmap>
+        </geometry>
+      </collision>
+      
+      <visual name="visual">
+        <geometry>
+          <heightmap>
+            <uri>model://provo_canyon_terrain/provo_canyon_heightmap.png</uri>
+            <size>868 1044 138.87</size>
+            <pos>0 0 -69.435</pos>
+            <texture>
+              <diffuse>file://media/materials/textures/dirt_diffusespecular.png</diffuse>
+              <normal>file://media/materials/textures/flat_normal.png</normal>
+              <size>1</size>
+            </texture>
+            <texture>
+              <diffuse>file://media/materials/textures/grass_diffusespecular.png</diffuse>
+              <normal>file://media/materials/textures/flat_normal.png</normal>
+              <size>1</size>
+            </texture>
+            <texture>
+              <diffuse>file://media/materials/textures/fungus_diffusespecular.png</diffuse>
+              <normal>file://media/materials/textures/flat_normal.png</normal>
+              <size>1</size>
+            </texture>
+            <blend>
+              <min_height>0</min_height>
+              <fade_dist>5</fade_dist>
+            </blend>
+            <blend>
+              <min_height>40</min_height>
+              <fade_dist>10</fade_dist>
+            </blend>
+            <blend>
+              <min_height>80</min_height>
+              <fade_dist>10</fade_dist>
+            </blend>
+          </heightmap>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
