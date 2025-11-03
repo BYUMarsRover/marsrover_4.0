@@ -43,6 +43,6 @@ ATTRS{serial}=="1DD5F3D", MODE:="0777", \
 SYMLINK+="rover/js/xbox_one_arm"
 
 # Antenna Control Arduino
-ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001" \
+KERNEL=="ttyUSB*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", \
 MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1", \
 SYMLINK+="rover/wiggleArduino"
