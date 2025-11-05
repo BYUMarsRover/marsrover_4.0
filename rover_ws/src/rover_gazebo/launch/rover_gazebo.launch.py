@@ -11,7 +11,7 @@ def generate_launch_description():
     gz_dir = get_package_share_directory("rover_gazebo")
     gz_launch_dir = os.path.join(gz_dir, "launch")
 
-    world = os.path.join(gz_dir, "worlds", "mha.world")
+    world = os.path.join(gz_dir, "worlds", "provo_canyon.world")
     models_dir = os.path.join(gz_dir, "models")
     models_dir += os.pathsep
     set_gz_model_path_cmd = None
@@ -35,7 +35,7 @@ def generate_launch_description():
             "-entity", "rover",
             "-x", "0.0",        # Change from -54.5 to start at center
             "-y", "0.0",        # Change from 127.8 to start at center
-            "-z", "-10.0",        # Spawn slightly above terrain
+            "-z", "0.0",        # Spawn slightly above terrain
             "-Y", "0.0",
         ],
         # arguments=[
