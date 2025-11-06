@@ -138,12 +138,12 @@ controller_server:
       min_speed_xy: 0.0
       max_speed_xy: 1.0
       min_speed_theta: 0.0
-      acc_lim_x: 4.5
+      acc_lim_x: 2.5
       acc_lim_y: 0.0
-      acc_lim_theta: 4.0
-      decel_lim_x: -4.5
+      acc_lim_theta: 3.2
+      decel_lim_x: -2.5
       decel_lim_y: 0.0
-      decel_lim_theta: -4.0
+      decel_lim_theta: -3.2
       vx_samples: 20
       vy_samples: 5
       vtheta_samples: 20
@@ -336,10 +336,10 @@ velocity_smoother:
     smoothing_frequency: 20.0 # EKF update speed
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [1.5, 0.0, 3.0]
-    min_velocity: [-1.5, 0.0, -3.0]
-    max_accel: [4.5, 0.0, 4.0]
-    max_decel: [-4.5, 0.0, -4.0]
+    max_velocity: [10.0, 0.0, 4.5]
+    min_velocity: [-10.0, 0.0, -4.5]
+    max_accel: [2.5, 0.0, 2.5]
+    max_decel: [-2.5, 0.0, -2.5]
     odom_topic: /zed/zed_node/odom
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
