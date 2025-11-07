@@ -22,6 +22,8 @@ setup(
     license='Apache-2.0',
     tests_require=['pytest'],
     entry_points={
-        'console_scripts': [],
+        'console_scripts': [
+            'object_detection_service = rover_perception.object_box_srv:main',
+        ],
     },
 )
