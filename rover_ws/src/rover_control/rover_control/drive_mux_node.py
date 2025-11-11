@@ -15,8 +15,8 @@ class DriveMux(Node):
 
     States:
     - Teleop (cmd_vel_teleop, blue LED)
-    - Auto (cmd_vel, flashing green LED)
-    - Arrival (cmd_vel, red LED)
+    - Arrival (cmd_vel, flashing green LED)
+    - Auto (cmd_vel, red LED)
 
     Subscribers:
     - cmd_vel (geometry_msgs/Twist) - from Nav2
