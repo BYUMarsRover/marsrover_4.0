@@ -33,6 +33,7 @@ import json
 import os
 import utm
 import threading
+import subprocess
 
 from std_srvs.srv import SetBool, Trigger
 from rover_interfaces.srv import (
@@ -233,6 +234,7 @@ class AutonomyGUI(Node, QWidget):
         self.waypoints = []
         self.goal_handle = None
         self.close_flag = False
+        self.rqt_image_process = None  # Track rqt_image_view process
 
         self.setWindowTitle("Autonomy Mission GUI")
         self.layout = QVBoxLayout()
@@ -570,6 +572,15 @@ class AutonomyGUI(Node, QWidget):
     def closeEvent(self, event):
         self.close_flag = True
         self.stop_mission()
+        
+        # Clean up rqt_image_view process if running
+        if self.rqt_image_process is not None and self.rqt_image_process.poll() is None:
+            self.rqt_image_process.terminate()
+            try:
+                self.rqt_image_process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                self.rqt_image_process.kill()
+        
         self.ros2_thread.stop()
         self.ros2_thread.wait()
         event.accept()
@@ -1086,8 +1097,36 @@ class AutonomyGUI(Node, QWidget):
         self.update_button_states()
 
     def get_annotated_image(self):
-        """Call the service to get annotated object image"""
+        """Call the service to get annotated object image and display it in rqt_image_view"""
         self.get_logger().info("Requesting annotated object image...")
+        
+        # First, launch rqt_image_view to display the image
+        try:
+            # Kill any existing rqt_image_view process
+            if self.rqt_image_process is not None and self.rqt_image_process.poll() is None:
+                self.rqt_image_process.terminate()
+                self.rqt_image_process.wait(timeout=2)
+            
+            # Launch rqt_image_view using ros2 run
+            # This ensures it works even if rqt_image_view isn't directly in PATH
+            self.rqt_image_process = subprocess.Popen(
+                ['ros2', 'run', 'rqt_image_view', 'rqt_image_view', '/annotated_detections_static'],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            self.get_logger().info("Launched rqt_image_view for /annotated_detections_static")
+            
+            # Give rqt_image_view a moment to start up
+            import time
+            time.sleep(0.5)
+            
+        except Exception as e:
+            self.get_logger().error(f"Failed to launch rqt_image_view: {e}")
+            QMessageBox.warning(
+                self, "Warning", f"Failed to launch image viewer: {e}\n\nContinuing with service call..."
+            )
+        
+        # Now call the service to publish the annotated image
         client = self.create_client(
             Trigger,
             "/get_annotated_detection",
