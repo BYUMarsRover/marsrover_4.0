@@ -4,8 +4,8 @@ services:
     image: byuawesomerover/marsrover_2.0:latest
     container_name: marsrover-ct
     build: 
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     user: marsrover-docker
     network_mode: host
     privileged: true
