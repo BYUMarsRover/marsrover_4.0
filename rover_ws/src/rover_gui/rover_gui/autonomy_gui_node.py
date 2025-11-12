@@ -293,6 +293,24 @@ class AutonomyGUI(Node, QWidget):
         self.stop_button.clicked.connect(self.stop_mission)
         mission_layout.addWidget(self.stop_button)
 
+        # Annotated Image Layout
+        annotated_image_layout = QHBoxLayout()
+        self.get_annotated_image_button = QPushButton("Get Annotated Object Image")
+        self.get_annotated_image_button.clicked.connect(self.get_annotated_image)
+        annotated_image_layout.addWidget(self.get_annotated_image_button)
+        annotated_image_layout.addStretch(1)
+
+        # Object Detection Toggle Layout
+        object_detection_layout = QHBoxLayout()
+        self.object_detection_checkbox = QCheckBox("Enable Object Detection")
+        self.object_detection_checkbox.setChecked(False)
+        self.object_detection_checkbox.setToolTip(
+            "If checked, the ZED camera will perform real-time object detection."
+        )
+        self.object_detection_checkbox.stateChanged.connect(self.toggle_object_detection)
+        object_detection_layout.addWidget(self.object_detection_checkbox)
+        object_detection_layout.addStretch(1)
+
         # Terrain Planning Layout
         terrain_planning_layout = QHBoxLayout()
         self.terrain_planning_checkbox = QCheckBox("Enable Terrain Path Planning")
@@ -306,6 +324,8 @@ class AutonomyGUI(Node, QWidget):
         self.layout.addLayout(json_layout)
         self.layout.addLayout(buttons_layout)
         self.layout.addLayout(mission_layout)
+        self.layout.addLayout(annotated_image_layout)
+        self.layout.addLayout(object_detection_layout)
         self.layout.addLayout(terrain_planning_layout)
 
         # Feedback Display
@@ -319,9 +339,11 @@ class AutonomyGUI(Node, QWidget):
         self.layout.setStretch(2, 1)  # Save/Load Buttons
         self.layout.setStretch(3, 1)  # Edit/Duplicate/Remove/Clear Buttons
         self.layout.setStretch(4, 1)  # Start/Stop Buttons
-        self.layout.setStretch(5, 1)  # Terrain Planning Layout
-        self.layout.setStretch(6, 1)  # Feedback Label
-        self.layout.setStretch(7, 20)  # Feedback Display
+        self.layout.setStretch(5, 1)  # Annotated Image Layout
+        self.layout.setStretch(6, 1)  # Object Detection Layout
+        self.layout.setStretch(7, 1)  # Terrain Planning Layout
+        self.layout.setStretch(8, 1)  # Feedback Label
+        self.layout.setStretch(9, 20)  # Feedback Display
 
         self.setLayout(self.layout)
 
@@ -1062,6 +1084,141 @@ class AutonomyGUI(Node, QWidget):
             )
         self.feedback_display.scrollToBottom()
         self.update_button_states()
+
+    def get_annotated_image(self):
+        """Call the service to get annotated object image"""
+        self.get_logger().info("Requesting annotated object image...")
+        client = self.create_client(
+            Trigger,
+            "/get_annotated_detection",
+            callback_group=self.callback_group,
+        )
+
+        if not client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().error(
+                "Annotated image service not available after 2 seconds!"
+            )
+            self.ui_update_signal.emit(
+                lambda: QMessageBox.critical(
+                    self, "Error", "Annotated image service not available!"
+                )
+            )
+            return
+
+        request = Trigger.Request()
+        future = client.call_async(request)
+        future.add_done_callback(self.annotated_image_response_callback)
+
+    def annotated_image_response_callback(self, future):
+        """ROS2 Callback: Handles the response from annotated image request."""
+        try:
+            response = future.result()
+            self.ui_update_signal.emit(
+                lambda: self.handle_annotated_image_response(response)
+            )
+        except Exception as e:
+            self.get_logger().error(f"Annotated image service call failed: {e}")
+            self.ui_update_signal.emit(
+                lambda: QMessageBox.critical(
+                    self, "Error", f"Annotated image service failed: {e}"
+                )
+            )
+
+    def handle_annotated_image_response(self, response):
+        """Helper method to display annotated image response. Runs in GUI thread."""
+        if response.success:
+            self.feedback_display.addItem(
+                self.format_feedback_text(f"[SUCCESS] [gui] {response.message}")
+            )
+            QMessageBox.information(
+                self, "Annotated Image", response.message
+            )
+        else:
+            self.feedback_display.addItem(
+                self.format_feedback_text(f"[ERROR] [gui] {response.message}")
+            )
+            QMessageBox.warning(
+                self, "Annotated Image", response.message
+            )
+        self.feedback_display.scrollToBottom()
+
+    def toggle_object_detection(self, state):
+        """Toggle object detection on/off via service call"""
+        enable = (state == 2)  # Qt.Checked == 2
+        self.get_logger().info(f"Toggling object detection: {enable}")
+        
+        client = self.create_client(
+            SetBool,
+            "/zed/zed_node/enable_obj_det",
+            callback_group=self.callback_group,
+        )
+
+        if not client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().error(
+                "Object detection toggle service not available after 2 seconds!"
+            )
+            self.ui_update_signal.emit(
+                lambda: QMessageBox.critical(
+                    self, "Error", "Object detection toggle service not available!"
+                )
+            )
+            # Revert checkbox state
+            self.ui_update_signal.emit(
+                lambda: self.object_detection_checkbox.setChecked(not enable)
+            )
+            return
+
+        request = SetBool.Request()
+        request.data = enable
+        future = client.call_async(request)
+        future.add_done_callback(
+            lambda f: self.object_detection_toggle_response_callback(f, enable)
+        )
+
+    def object_detection_toggle_response_callback(self, future, requested_state):
+        """ROS2 Callback: Handles the response from object detection toggle request."""
+        try:
+            response = future.result()
+            self.ui_update_signal.emit(
+                lambda: self.handle_object_detection_toggle_response(response, requested_state)
+            )
+        except Exception as e:
+            self.get_logger().error(f"Object detection toggle service call failed: {e}")
+            self.ui_update_signal.emit(
+                lambda: QMessageBox.critical(
+                    self, "Error", f"Object detection toggle failed: {e}"
+                )
+            )
+            # Revert checkbox state
+            self.ui_update_signal.emit(
+                lambda: self.object_detection_checkbox.setChecked(not requested_state)
+            )
+
+    def handle_object_detection_toggle_response(self, response, requested_state):
+        """Helper method to display object detection toggle response. Runs in GUI thread."""
+        if response.success:
+            state_str = "enabled" if requested_state else "disabled"
+            self.feedback_display.addItem(
+                self.format_feedback_text(f"[SUCCESS] [gui] Object detection {state_str}")
+            )
+        else:
+            # Service returns success=True even if already in that state
+            # Only revert checkbox if there was an actual error
+            if "already" not in response.message.lower():
+                self.feedback_display.addItem(
+                    self.format_feedback_text(f"[ERROR] [gui] Failed to toggle object detection: {response.message}")
+                )
+                QMessageBox.warning(
+                    self, "Object Detection Toggle", f"Failed: {response.message}"
+                )
+                # Revert checkbox state on failure
+                self.object_detection_checkbox.setChecked(not requested_state)
+            else:
+                # Already in the requested state - just log it
+                self.feedback_display.addItem(
+                    self.format_feedback_text(f"[gui] Object detection already {state_str}")
+                )
+        self.feedback_display.scrollToBottom()
 
     ########################
     # MCP GUI INTEGRATIONS #
