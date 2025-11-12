@@ -118,7 +118,8 @@ def main(args=None):
         pass
     finally:
         node.queue_handler_thread.join()
-        #node.arduino_listener_thread.join()
+        if getattr(node, "arduino_listener_thread", None):
+            node.arduino_listener_thread.join()
         node.destroy_node()
         rclpy.shutdown()
 
