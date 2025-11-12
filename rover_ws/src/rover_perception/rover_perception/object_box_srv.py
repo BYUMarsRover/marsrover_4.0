@@ -135,7 +135,14 @@ class ObjectDetectionService(Node):
         # Publish annotated image with proper header
         annotated_msg = self.bridge.cv2_to_imgmsg(cv_image, "bgr8")
         annotated_msg.header = self.latest_image.header  # Preserve timestamp and frame_id
-        self.annotated_static_pub.publish(annotated_msg)
+        
+        # Publish multiple times with delays to ensure viewers have time to subscribe
+        # This is especially important for rqt_image_view which takes time to start up
+        import time
+        for i in range(5):
+            self.annotated_static_pub.publish(annotated_msg)
+            if i < 4:  # Don't sleep after the last publish
+                time.sleep(0.2)
         
         response.success = True
         response.message = f"Published annotated image with {num_objects} detected objects"

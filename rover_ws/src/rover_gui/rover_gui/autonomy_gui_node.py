@@ -1100,31 +1100,46 @@ class AutonomyGUI(Node, QWidget):
         """Call the service to get annotated object image and display it in rqt_image_view"""
         self.get_logger().info("Requesting annotated object image...")
         
-        # First, launch rqt_image_view to display the image
-        try:
-            # Kill any existing rqt_image_view process
-            if self.rqt_image_process is not None and self.rqt_image_process.poll() is None:
-                self.rqt_image_process.terminate()
-                self.rqt_image_process.wait(timeout=2)
-            
-            # Launch rqt_image_view using ros2 run
-            # This ensures it works even if rqt_image_view isn't directly in PATH
-            self.rqt_image_process = subprocess.Popen(
-                ['ros2', 'run', 'rqt_image_view', 'rqt_image_view', '/annotated_detections_static'],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
-            self.get_logger().info("Launched rqt_image_view for /annotated_detections_static")
-            
-            # Give rqt_image_view a moment to start up
-            import time
-            time.sleep(0.5)
-            
-        except Exception as e:
-            self.get_logger().error(f"Failed to launch rqt_image_view: {e}")
-            QMessageBox.warning(
-                self, "Warning", f"Failed to launch image viewer: {e}\n\nContinuing with service call..."
-            )
+        # Check if rqt_image_view is already running
+        viewer_already_running = False
+        
+        # Check if our tracked process is still alive
+        if self.rqt_image_process is not None and self.rqt_image_process.poll() is None:
+            viewer_already_running = True
+            self.get_logger().info("rqt_image_view is already running, reusing it")
+        else:
+            # Check if any rqt_image_view process exists (in case it was launched manually)
+            try:
+                result = subprocess.run(['pgrep', '-f', 'rqt_image_view'], 
+                                      capture_output=True, 
+                                      text=True,
+                                      timeout=1)
+                if result.returncode == 0 and result.stdout.strip():
+                    viewer_already_running = True
+                    self.get_logger().info("Found existing rqt_image_view process, reusing it")
+            except Exception as e:
+                self.get_logger().debug(f"Could not check for existing rqt_image_view: {e}")
+        
+        # Only launch a new viewer if one isn't already running
+        if not viewer_already_running:
+            try:
+                self.rqt_image_process = subprocess.Popen(
+                    ['ros2', 'run', 'rqt_image_view', 'rqt_image_view', '/annotated_detections_static'],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                self.get_logger().info("Launched new rqt_image_view for /annotated_detections_static")
+                
+                # Give rqt_image_view sufficient time to start up and subscribe to the topic
+                # This prevents the first image from being missed
+                import time
+                time.sleep(0.3)
+                
+            except Exception as e:
+                self.get_logger().error(f"Failed to launch rqt_image_view: {e}")
+                QMessageBox.warning(
+                    self, "Warning", f"Failed to launch image viewer: {e}\n\nContinuing with service call..."
+                )
         
         # Now call the service to publish the annotated image
         client = self.create_client(
@@ -1235,8 +1250,8 @@ class AutonomyGUI(Node, QWidget):
 
     def handle_object_detection_toggle_response(self, response, requested_state):
         """Helper method to display object detection toggle response. Runs in GUI thread."""
+        state_str = "enabled" if requested_state else "disabled"
         if response.success:
-            state_str = "enabled" if requested_state else "disabled"
             self.feedback_display.addItem(
                 self.format_feedback_text(f"[SUCCESS] [gui] Object detection {state_str}")
             )
