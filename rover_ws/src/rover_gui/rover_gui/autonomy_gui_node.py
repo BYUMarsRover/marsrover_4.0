@@ -1,5 +1,9 @@
+import asyncio
+import threading
 import rclpy
 from rclpy.node import Node
+from rcl_interfaces.msg import Parameter, ParameterValue, ParameterType
+from rcl_interfaces.srv import SetParameters
 from rclpy.action import ActionClient
 from rclpy.callback_groups import ReentrantCallbackGroup
 from action_msgs.msg import GoalStatus
@@ -25,6 +29,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QFileDialog,
     QCheckBox,
+    QDoubleSpinBox
 )
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot, QMetaObject, Qt, Q_ARG
@@ -207,6 +212,18 @@ class AutonomyGUI(Node, QWidget):
             "waypoints",
         )
 
+        # Client to change the Nav2 goal tolerance
+        self.param_client_cnt = self.create_client(SetParameters,"controller_server/set_parameters")
+        while not self.param_client_cnt.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info("Parameter service not available, waiting again...")
+        self.param_request_cnt = SetParameters.Request()
+
+        # Client to change the Nav2 goal tolerance
+        self.param_client_cost = self.create_client(SetParameters,"global_costmap/global_costmap/set_parameters")
+        while not self.param_client_cost.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info("Parameter service not available, waiting again...")
+        self.param_request_cost = SetParameters.Request()
+
         self.callback_group = ReentrantCallbackGroup()
         self._action_client = ActionClient(
             self,
@@ -335,6 +352,64 @@ class AutonomyGUI(Node, QWidget):
         self.layout.addWidget(self.feedback_label)
         self.feedback_display = QListWidget()
         self.layout.addWidget(self.feedback_display)
+
+        # Label for Max Speed
+        self.max_speed_label = QLabel("Max Speed (m/s):")
+        self.max_speed_label.setToolTip("Set the maximum rover speed during terrain navigation.")
+        terrain_planning_layout.addWidget(self.max_speed_label)
+
+        # QDoubleSpinBox for Max Speed control
+        self.max_speed_spinbox = QDoubleSpinBox()
+        self.max_speed_spinbox.setRange(0.00, 5.00)          # Allowed speed range (0–9.99 rad/s)
+        self.max_speed_spinbox.setSingleStep(0.1)          # Step size for arrow clicks
+        self.max_speed_spinbox.setDecimals(2)              # Two decimal precision
+        self.max_speed_spinbox.setValue(1.0)  # fallback default 
+        self.max_speed_spinbox.valueChanged.connect(self.set_max_vel)
+        terrain_planning_layout.addWidget(self.max_speed_spinbox)
+
+        # Label for Max Rotational Speed
+        self.max_rot_speed_label = QLabel("Max Rot Speed (rad/s):")
+        self.max_rot_speed_label.setToolTip("Set the maximum rover rotational speed during terrain navigation.")
+        terrain_planning_layout.addWidget(self.max_rot_speed_label)
+
+        # QDoubleSpinBox for Max Rotational Speed control
+        self.max_rot_speed_spinbox = QDoubleSpinBox()
+        self.max_rot_speed_spinbox.setRange(0.00, 9.99)          # Allowed speed range (0–9.99 m/s)
+        self.max_rot_speed_spinbox.setSingleStep(0.1)          # Step size for arrow clicks
+        self.max_rot_speed_spinbox.setDecimals(2)              # Two decimal precision
+        self.max_rot_speed_spinbox.setValue(3.0)  # fallback default 
+        self.max_rot_speed_spinbox.valueChanged.connect(self.set_max_rot_vel)
+        terrain_planning_layout.addWidget(self.max_rot_speed_spinbox)
+        
+
+        # Label for Safety Inflation Radius
+        self.safety_rad_label = QLabel("Safety radius(m):")
+        self.safety_rad_label.setToolTip("Set the safety radius around hazards.")
+        terrain_planning_layout.addWidget(self.safety_rad_label)
+
+        # QDoubleSpinBox for Safety Inflation Radius
+        self.safety_rad_pinbox = QDoubleSpinBox()
+        self.safety_rad_pinbox.setRange(0.00, 9.99)          # Allowed speed range (0–9.99 m)
+        self.safety_rad_pinbox.setSingleStep(0.1)          # Step size for arrow clicks
+        self.safety_rad_pinbox.setDecimals(2)              # Two decimal precision
+        self.safety_rad_pinbox.setValue(1.5)  # fallback default
+        self.safety_rad_pinbox.valueChanged.connect(self.set_inflation_rad)
+        terrain_planning_layout.addWidget(self.safety_rad_pinbox)
+
+        # Label for Optimization Cost of Inflation Radius
+        self.safety_cost_label = QLabel("Safety cost:")
+        self.safety_cost_label.setToolTip("Set the cost for safety radius around hazards.")
+        terrain_planning_layout.addWidget(self.safety_cost_label)
+
+        # QDoubleSpinBox for Optimization Cost of Inflation Radius
+        self.safety_cost_pinbox = QDoubleSpinBox()
+        self.safety_cost_pinbox.setRange(0.00, 5.00)          # Allowed speed range (0–5)
+        self.safety_cost_pinbox.setSingleStep(0.1)          # Step size for arrow clicks
+        self.safety_cost_pinbox.setDecimals(3)              # Three decimal precision
+        self.safety_cost_pinbox.setValue(3.0)  # fallback default 
+        self.safety_cost_pinbox.valueChanged.connect(self.set_inflation_cost)
+        terrain_planning_layout.addWidget(self.safety_cost_pinbox)
+
 
         self.layout.setStretch(0, 1)  # Waypoint Label
         self.layout.setStretch(1, 6)  # Waypoint List
@@ -1465,6 +1540,112 @@ class AutonomyGUI(Node, QWidget):
         response.success = True
         response.message = "Cancel request sent."
         return response
+    
+    def set_max_vel(self, vel: float):
+        """Slot connected to QDoubleSpinBox; updates Nav2 parameter."""
+        req = SetParameters.Request()
+        req.parameters = [
+            Parameter(
+                name="FollowPath.max_vel_x",
+                value=ParameterValue(
+                    type=ParameterType.PARAMETER_DOUBLE,
+                    double_value=vel
+                )
+            ),
+            Parameter(
+                name="FollowPath.max_speed_xy",
+                value=ParameterValue(
+                    type=ParameterType.PARAMETER_DOUBLE,
+                    double_value=vel
+                )
+            )
+        ]
+
+        # Run the service call in a background thread (safe for Qt)
+        threading.Thread(
+            target=self._blocking_service_call,
+            args=(req,self.param_client_cnt,),
+            daemon=True
+        ).start()
+
+    def set_max_rot_vel(self, vel: float):
+        """Slot connected to QDoubleSpinBox; updates Nav2 parameter."""
+        req = SetParameters.Request()
+        req.parameters = [
+            Parameter(
+                name="FollowPath.max_vel_theta",
+                value=ParameterValue(
+                    type=ParameterType.PARAMETER_DOUBLE,
+                    double_value=vel
+                )
+            ),
+            Parameter(
+                name="FollowPath.min_vel_theta",
+                value=ParameterValue(
+                    type=ParameterType.PARAMETER_DOUBLE,
+                    double_value=vel*-1
+                )
+            )
+        ]
+
+        # Run the service call in a background thread (safe for Qt)
+        threading.Thread(
+            target=self._blocking_service_call,
+            args=(req,self.param_client_cnt,),
+            daemon=True
+        ).start()
+
+    def set_inflation_rad(self, rad: float):
+        """Slot connected to QDoubleSpinBox; updates Nav2 parameter."""
+        req = SetParameters.Request()
+        req.parameters = [
+            Parameter(
+                name="inflation_layer.inflation_radius",
+                value=ParameterValue(
+                    type=ParameterType.PARAMETER_DOUBLE,
+                    double_value=rad
+                )
+            )
+        ]
+
+        # Run the service call in a background thread (safe for Qt)
+        threading.Thread(
+            target=self._blocking_service_call,
+            args=(req,self.param_client_cost,),
+            daemon=True
+        ).start()
+
+    def set_inflation_cost(self, cost: float):
+        """Slot connected to QDoubleSpinBox; updates Nav2 parameter."""
+        req = SetParameters.Request()
+        req.parameters = [
+            Parameter(
+                name="inflation_layer.cost_scaling_factor",
+                value=ParameterValue(
+                    type=ParameterType.PARAMETER_DOUBLE,
+                    double_value=cost
+                )
+            )
+        ]
+
+        # Run the service call in a background thread (safe for Qt)
+        threading.Thread(
+            target=self._blocking_service_call,
+            args=(req,self.param_client_cost,),
+            daemon=True
+        ).start()
+        
+
+    def _blocking_service_call(self, req, client):
+        """Perform the parameter service call synchronously in another thread."""
+        future = client.call(req)
+        rclpy.spin_until_future_complete(self, future)
+        result = future.result()
+        if result is not None:
+            self.get_logger().info("Parameter set successfully")
+        else:
+            self.get_logger().warn("Failed to set parameter")
+
 
     ############################
     # END MCP GUI INTEGRATIONS #
