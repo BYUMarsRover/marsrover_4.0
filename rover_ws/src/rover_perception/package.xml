@@ -7,7 +7,14 @@
   <maintainer email="snelsondurrant@gmail.com">Nelson Durrant</maintainer>
   <license>Apache-2.0</license>
 
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>zed_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>cv_bridge</depend>
   <depend>aruco_opencv</depend>
+
+  <exec_depend>python3-opencv</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>
