@@ -3,7 +3,7 @@ from rclpy.node import Node
 from std_msgs.msg import Bool, String, UInt16MultiArray
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
-from rover_msgs.msg import Elevator #, IWCMotors, HeartbeatStatusRover, FPVServo
+#from rover_msgs.msg import Elevator, IWCMotors, HeartbeatStatusRover, FPVServo
 
 from std_srvs.srv import Trigger
 import serial
@@ -46,7 +46,7 @@ class MegaWrapper(Node):
         self.subscription = self.create_subscription(
             Joy, "joy", self.joy_callback, 10
         )  # direct elevator control
-        self.create_subscription(Elevator, '/elevator', self.send_elevator, 1)
+        #self.create_subscription(Elevator, '/elevator', self.send_elevator, 1)
         # self.create_subscription(Bool, '/arm_clicker', self.send_clicker, 1)
         # self.create_subscription(Bool, '/arm_laser', self.send_laser, 1)
         # self.create_subscription(FPVServo, '/fpv_servo', self.send_fpvsv, 1)
