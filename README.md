@@ -1,12 +1,12 @@
-[Get Started](https://github.com/BYUMarsRover/marsrover_2.0?tab=readme-ov-file#get-started)
+[Get Started](https://github.com/BYUMarsRover/marsrover_4.0?tab=readme-ov-file#get-started)
 
-[Essential Tutorials](https://github.com/BYUMarsRover/marsrover_2.0?tab=readme-ov-file#essential-tutorials)
+[Essential Tutorials](https://github.com/BYUMarsRover/marsrover_4.0?tab=readme-ov-file#essential-tutorials)
 
-[How-To Videos](https://github.com/BYUMarsRover/marsrover_2.0?tab=readme-ov-file#how-to-videos)
+[How-To Videos](https://github.com/BYUMarsRover/marsrover_4.0?tab=readme-ov-file#how-to-videos)
 
-[Software Diagrams](https://github.com/BYUMarsRover/marsrover_2.0?tab=readme-ov-file#software-diagrams)
+[Software Diagrams](https://github.com/BYUMarsRover/marsrover_4.0?tab=readme-ov-file#software-diagrams)
 
-[Contributing](https://github.com/BYUMarsRover/marsrover_2.0?tab=readme-ov-file#contributing)
+[Contributing](https://github.com/BYUMarsRover/marsrover_4.0?tab=readme-ov-file#contributing)
 
 --
 
@@ -44,17 +44,17 @@
 
 - Install Docker Desktop on your Windows machine by following the instructions [here](https://docs.docker.com/desktop/), and enable the WSL2 backend by following the instructions [here](https://docs.docker.com/desktop/windows/wsl/).
 
-- Open a WSL2 terminal and clone the marsrover_2.0 repo into your WSL2 environment using `git clone https://github.com/BYUMarsRover/marsrover_2.0.git`.
+- Open a WSL2 terminal and clone the marsrover_4.0 repo into your WSL2 environment using `git clone https://github.com/BYUMarsRover/marsrover_4.0.git`.
 
-- Run `cd marsrover_2.0 && bash compose.sh` to pull and launch the latest Docker image from DockerHub.
+- Run `cd marsrover_4.0 && bash compose.sh` to pull and launch the latest Docker image from DockerHub.
 
 **Linux:**
 
 - Install Docker Engine on your Linux machine by following the instructions [here](https://docs.docker.com/engine/install/ubuntu/). Make sure to follow the post-installation steps to allow your user to run Docker commands without `sudo`.
 
-- Open a terminal and clone the marsrover_2.0 repo into your Linux environment using `git clone https://github.com/BYUMarsRover/marsrover_2.0.git`.
+- Open a terminal and clone the marsrover_4.0 repo into your Linux environment using `git clone https://github.com/BYUMarsRover/marsrover_4.0.git`.
 
-- Run `cd marsrover_2.0 && bash compose.sh` to pull and launch the latest Docker image from DockerHub.
+- Run `cd marsrover_4.0 && bash compose.sh` to pull and launch the latest Docker image from DockerHub.
 
 --
 

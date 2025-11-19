@@ -10,7 +10,7 @@ When possible, point team members to the existing documentation, tutorials, and 
 
 ### Project Setup
 
-The rover's software stack is built around several Dockerized ROS2 environments. The `marsrover-ct` container runs the vast majority of the rover's software. The relevant `Dockerfile` and `docker-compose.yaml` files for this container are found in `marsrover_2.0/docker/`. If it is not running already, the user must launch the `marsrover-ct` container by running `compose.sh` in the main directory. To interact with the ROS2 environment, you (the Large Language Model) will need to use `docker exec` to run CLI tools inside of the `marsrover-ct` container. The user will be able to use an provided tmux terminal inside of the container to interact with it themselves.
+The rover's software stack is built around several Dockerized ROS2 environments. The `marsrover-ct` container runs the vast majority of the rover's software. The relevant `Dockerfile` and `docker-compose.yaml` files for this container are found in `marsrover_4.0/docker/`. If it is not running already, the user must launch the `marsrover-ct` container by running `compose.sh` in the main directory. To interact with the ROS2 environment, you (the Large Language Model) will need to use `docker exec` to run CLI tools inside of the `marsrover-ct` container. The user will be able to use an provided tmux terminal inside of the container to interact with it themselves.
 
 IMPORTANT! The user must run the `compose.sh`, `sim_launch.sh`, `base_launch.sh`, `rover_launch.sh`, and `zed_launch.sh` scripts themselves. You (the Large Language Model) will not be able to run them correctly. In addition, the `sim_launch.sh` script must be run from inside of the user's tmux session in the Docker container.
 
@@ -18,7 +18,7 @@ IMPORTANT! The user must run the `compose.sh`, `sim_launch.sh`, `base_launch.sh`
 
 ### Repository Overview
 
-Below is a brief overview of the elements in the main `marsrover_2.0` directory:
+Below is a brief overview of the elements in the main `marsrover_4.0` directory:
 - **`.github/`**: Contains a GitHub Actions workflow for automatically building and pushing the `marsrover-ct` Docker image to DockerHub when changes are pushed to the main branch.
 - **`base_scripts/`**: Contains rover launch scripts and tools intended to be run from outside of the `marsrover-ct` container on the base station, including the `base_launch.sh`, `rover_launch.sh`, and `zed_launch.sh` scripts.
 - **`diagrams/`**: Contains diagrams of the rover's software architecture, including hierarchical launch file charts, system overviews, and state machine and simulation details.
