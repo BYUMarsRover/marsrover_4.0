@@ -27,6 +27,8 @@ def generate_launch_description():
     gui_launch_dir = os.path.join(gui_dir, "launch")
     ublox_dir = get_package_share_directory("ublox_read_2")
     ublox_launch_dir = os.path.join(ublox_dir, "launch")
+    control_dir = get_package_share_directory("rover_control")
+    params = os.path.join(control_dir, "config/control_params.yaml")
 
     rviz_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(gui_launch_dir, "rviz.launch.py")),
@@ -56,6 +58,17 @@ def generate_launch_description():
         output="screen",
     )
 
+    teleop_twist_joy_cmd = Node(
+        # https://github.com/ros2/teleop_twist_joy
+        package="teleop_twist_joy",
+        executable="teleop_node",
+        parameters=[params],
+        output="screen",
+        remappings=[
+            ("cmd_vel", "cmd_vel_teleop"),
+        ],
+    )
+
     ld = LaunchDescription()
 
     # viz launch
@@ -66,5 +79,6 @@ def generate_launch_description():
     ld.add_action(gui_cmd)
     # ld.add_action(ublox_cmd) # We launch the GPS individually right now
     ld.add_action(joy_node_cmd)
+    ld.add_action(teleop_twist_joy_cmd)
 
     return ld
