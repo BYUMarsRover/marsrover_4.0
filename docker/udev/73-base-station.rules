@@ -1,46 +1,44 @@
-# Red Tape Drive Controller
+# Updated by Andrew McDonald in Nov 2025
+
+#######################
+#     Controllers     #
+#######################
+
+# DESCRIPTION: Two Black Generic (no logo) Xbox 360 Controllers
+# NOTE: We have two identical controllers, same serial, same idVendor, etc
+# USAGE: Main and backup drive controllers
 KERNEL=="js*", SUBSYSTEM=="input", \
 ATTRS{idVendor}=="045e", ATTRS{product}=="Controller", \
-ATTRS{serial}=="1B7FC22", MODE:="0777", \
-SYMLINK+="rover/js/xbox_red"
+ATTRS{serial}=="1DD5F3D", MODE:="0777", \
+SYMLINK+="rover/js/xbox_controller_drive"
 
-# Pink (or Blue) Controller
-KERNEL=="js*", SUBSYSTEM=="input", \
-ATTRS{idVendor}=="045e", ATTRS{product}=="Inno GamePad..", \
-ATTRS{serial}=="0000001", MODE:="0777", \
-SYMLINK+="rover/js/xbox_360"
-
-KERNEL=="js*", SUBSYSTEM=="input", \
-ATTRS{idVendor}=="045e", ATTRS{product}=="Controller", \
-ATTRS{serial}=="0000001", MODE:="0777", \
-SYMLINK+="rover/js/xbox_360"
-
-# Xbox One Controller
-KERNEL=="js*", SUBSYSTEM=="input", \
-ATTRS{idVendor}=="24c6", ATTRS{product}=="Xbox ONE Pro Ex controller", \
-ATTRS{serial}=="0000BEF6F338FE34", MODE:="0777", \
-SYMLINK+="rover/js/xbox_one"
-
-# Xbox One Controller
+# DESCRIPTION: White Xbox One Controller
+# NOTE: The wires are starting to come out so we will be replacing this
+# USAGE: Deprecated (will eventually be removed) drive controller
 KERNEL=="js*", SUBSYSTEM=="input", \
 ATTRS{idVendor}=="24c6", ATTRS{product}=="Xbox ONE Pro Ex controller", \
 ATTRS{serial}=="00008A360544DEF4", MODE:="0777", \
-SYMLINK+="rover/js/xbox_one"
+SYMLINK+="rover/js/xbox_controller_drive"
 
-# VOYEE Black Controller
+# DESCRIPTION: VOYEE Black Xbox 360 Controller
+# NOTE:
+# USAGE: Backup Arm controller
 KERNEL=="js*", SUBSYSTEM=="input", \
-ATTRS{serial}=="7EA955AA", MODE:="0777", \
-SYMLINK+="rover/js/xbox_one_arm"
-
-# Alternative VOYEE Black Controller
-KERNEL=="js*", SUBSYSTEM=="input", \
+ATTRS{idVendor}=="045e", ATTRS{product}=="Controller", \
 ATTRS{serial}=="530DD4BD", MODE:="0777", \
-SYMLINK+="rover/js/xbox_one"
+SYMLINK+="rover/js/xbox_controller_arm"
 
-# Temporary RAD-lab-owned Black Generic XBox Controller
+# DESCRIPTION: Pink Xbox 360 Controller
+# NOTE:
+# USAGE: Main science controller
 KERNEL=="js*", SUBSYSTEM=="input", \
-ATTRS{serial}=="1DD5F3D", MODE:="0777", \
-SYMLINK+="rover/js/xbox_one_arm"
+ATTRS{idVendor}=="045e", ATTRS{product}=="Controller", \
+ATTRS{serial}=="0000001", MODE:="0777", \
+SYMLINK+="rover/js/xbox_controller_science"
+
+###################
+#     Antenna     #
+###################
 
 # Antenna Control Arduino
 KERNEL=="ttyUSB*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", \
