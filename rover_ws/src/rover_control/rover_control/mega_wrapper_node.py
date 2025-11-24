@@ -459,35 +459,6 @@ class MegaWrapper(Node):
 
         self.send_elevator(elevator_speed, elevator_direction)
 
-        self.check_drive_enabled(msg)
-
-    def check_drive_enabled(self, msg: Joy):
-        start_button = msg.buttons[START]
-        back_button = msg.buttons[BACK]
-
-        if back_button:
-            # self.drive_enabled = False
-            # TODO: HANDLE DRIVE DISABLED
-            self.get_logger().info("Drive disabled NOT AVAILABLE")
-        elif start_button:
-            self.drive_enabled = True
-            request = Trigger.Request()
-            self.future = self.client.call_async(request)
-            self.get_logger().info("Drive enabled")
-
-            # Add a callback for when the future completes
-            self.future.add_done_callback(self.service_response_callback)
-
-    def service_response_callback(self, future):
-        try:
-            response = future.result()
-            if response is not None:
-                self.get_logger().info("Response: {}".format(response.message))
-            else:
-                self.get_logger().error("Service call failed with no response.")
-        except Exception as e:
-            self.get_logger().error(f"Exception while calling service: {e}")
-
 
 def main(args=None):
     rclpy.init(args=args)
