@@ -19,16 +19,8 @@ def generate_launch_description():
                 name="joy_node_rover",
                 output="screen",
             ),
-            launch_ros.actions.Node(
-                # https://github.com/ros2/teleop_twist_joy
-                package="teleop_twist_joy",
-                executable="teleop_node",
-                parameters=[params],
-                output="screen",
-                remappings=[
-                    ("cmd_vel", "cmd_vel_teleop"),
-                ],
-            ),
+            # Note: teleop_twist_joy runs on base station, not rover
+            # The rover only needs joy_node for local elevator control
             launch_ros.actions.Node(
                 package="rover_control",
                 executable="drive_mux",
