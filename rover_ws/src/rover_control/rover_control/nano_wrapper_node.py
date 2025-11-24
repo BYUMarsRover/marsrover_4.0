@@ -19,7 +19,7 @@ class NanoWrapper(Node):
     TODO: I think this could be simplified and cleaned up A LOT.
 
     Subscribers:
-    - /nav_state (std_msgs.Int8): Navigation state to control LEDs
+    - cmd_led (std_msgs.Int8): Navigation state to control LEDs
     """
 
     def __init__(self):
@@ -30,7 +30,7 @@ class NanoWrapper(Node):
         # self.battery_pub = self.create_publisher(RawBattery, '/raw_battery_info', 10)
 
         # Subscribers
-        self.create_subscription(Int8, "/nav_state", self.led_callback, 10)
+        self.create_subscription(Int8, "cmd_led", self.led_callback, 10)
         # self.create_subscription(Gripper, '/gripper', self.gripper_callback, 10)
         # self.create_subscription(Laser, '/laser_state', self.laser_callback, 10)
         # self.create_subscription(Clicker, '/click', self.click_callback, 10)
@@ -118,7 +118,8 @@ def main(args=None):
         pass
     finally:
         node.queue_handler_thread.join()
-        node.arduino_listener_thread.join()
+        if getattr(node, "arduino_listener_thread", None):
+            node.arduino_listener_thread.join()
         node.destroy_node()
         rclpy.shutdown()
 

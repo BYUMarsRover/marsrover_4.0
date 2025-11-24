@@ -9,5 +9,5 @@ source $script_dir/base_common.sh
 # Check for an SSH connection to the rover
 checkConnection # defined in base_common.sh
 
-ssh -t $ROVER_USERNAME@$ROVER_IP_ADDRESS "cd ~/marsrover_2.0 && \
-    git remote add base marsrover@192.168.1.111:marsrover_2.0"
+ssh -t $ROVER_USERNAME@$ROVER_IP_ADDRESS "cd ~/marsrover_4.0 && \
+    git remote add base marsrover@192.168.1.111:marsrover_4.0"

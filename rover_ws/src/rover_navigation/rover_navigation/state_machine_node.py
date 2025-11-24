@@ -1013,6 +1013,7 @@ class StateMachine(Node):
         ]
         asyncio.run(self.async_service_call(self.param_client, self.param_request))
 
+
     def set_detection_enabled(self, enabled):
         """
         Helper function to enable/disable aruco and object detection

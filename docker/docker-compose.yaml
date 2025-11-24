@@ -1,7 +1,7 @@
 # Created by Nelson Durrant, Oct 2024
 services:
   marsrover:
-    image: byuawesomerover/marsrover_2.0:latest
+    image: byuawesomerover/marsrover_4.0:latest
     container_name: marsrover-ct
     build: 
       context: ..

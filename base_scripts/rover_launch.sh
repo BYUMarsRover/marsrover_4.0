@@ -21,7 +21,7 @@ checkConnection # defined in base_common.sh
 # Start the Docker container if not already running
 if [ ! $(ssh $ROVER_USERNAME@$ROVER_IP_ADDRESS "docker ps" | grep -q "marsrover-ct") ]; then
     printWarning "Starting the marsrover-ct container on the rover..."
-    ssh -t $ROVER_USERNAME@$ROVER_IP_ADDRESS "cd ~/marsrover_2.0/docker && docker compose up -d"
+    ssh -t $ROVER_USERNAME@$ROVER_IP_ADDRESS "cd ~/marsrover_4.0/docker && docker compose up -d"
 fi
 
 # Launch the specified mission configuration over SSH
@@ -30,7 +30,7 @@ case $mission in
         printInfo "Setting up the autonomy mission..."
         # This envsubst allows for the use of environment variables in the tmuxp config
         cd $script_dir && envsubst < tmuxp/autonomy/rover_launch.yaml > tmuxp/tmp/rover_launch.yaml
-        scp tmuxp/tmp/rover_launch.yaml $ROVER_USERNAME@$ROVER_IP_ADDRESS:~/marsrover_2.0/base_scripts/tmuxp/tmp/
+        scp tmuxp/tmp/rover_launch.yaml $ROVER_USERNAME@$ROVER_IP_ADDRESS:~/marsrover_4.0/base_scripts/tmuxp/tmp/
         ssh $ROVER_USERNAME@$ROVER_IP_ADDRESS \
             "docker exec marsrover-ct tmuxp load -d /home/marsrover-docker/.tmuxp/rover_launch.yaml"
         ;;
@@ -38,7 +38,7 @@ case $mission in
         printInfo "Setting up the servicing mission..."
         # This envsubst allows for the use of environment variables in the tmuxp config
         cd $script_dir && envsubst < tmuxp/servicing/rover_launch.yaml > tmuxp/tmp/rover_launch.yaml
-        scp tmuxp/tmp/rover_launch.yaml $ROVER_USERNAME@$ROVER_IP_ADDRESS:~/marsrover_2.0/base_scripts/tmuxp/tmp/
+        scp tmuxp/tmp/rover_launch.yaml $ROVER_USERNAME@$ROVER_IP_ADDRESS:~/marsrover_4.0/base_scripts/tmuxp/tmp/
         ssh $ROVER_USERNAME@$ROVER_IP_ADDRESS \
             "docker exec marsrover-ct tmuxp load -d /home/marsrover-docker/.tmuxp/rover_launch.yaml"
         ;;
@@ -46,7 +46,7 @@ case $mission in
         printInfo "Setting up the delivery mission..."
         # This envsubst allows for the use of environment variables in the tmuxp config
         cd $script_dir && envsubst < tmuxp/delivery/rover_launch.yaml > tmuxp/tmp/rover_launch.yaml
-        scp tmuxp/tmp/rover_launch.yaml $ROVER_USERNAME@$ROVER_IP_ADDRESS:~/marsrover_2.0/base_scripts/tmuxp/tmp/
+        scp tmuxp/tmp/rover_launch.yaml $ROVER_USERNAME@$ROVER_IP_ADDRESS:~/marsrover_4.0/base_scripts/tmuxp/tmp/
         ssh $ROVER_USERNAME@$ROVER_IP_ADDRESS \
             "docker exec marsrover-ct tmuxp load -d /home/marsrover-docker/.tmuxp/rover_launch.yaml"
         ;;
@@ -54,7 +54,7 @@ case $mission in
         printInfo "Setting up the science mission..."
         # This envsubst allows for the use of environment variables in the tmuxp config
         cd $script_dir && envsubst < tmuxp/science/rover_launch.yaml > tmuxp/tmp/rover_launch.yaml
-        scp tmuxp/tmp/rover_launch.yaml $ROVER_USERNAME@$ROVER_IP_ADDRESS:~/marsrover_2.0/base_scripts/tmuxp/tmp/
+        scp tmuxp/tmp/rover_launch.yaml $ROVER_USERNAME@$ROVER_IP_ADDRESS:~/marsrover_4.0/base_scripts/tmuxp/tmp/
         ssh $ROVER_USERNAME@$ROVER_IP_ADDRESS \
             "docker exec marsrover-ct tmuxp load -d /home/marsrover-docker/.tmuxp/rover_launch.yaml"
         ;;
