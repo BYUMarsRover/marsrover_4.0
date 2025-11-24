@@ -58,6 +58,13 @@ def generate_launch_description():
         output="screen",
     )
 
+    mode_switcher_cmd = Node(
+        package="rover_control",
+        executable="mode_switcher",
+        name="mode_switcher_base",
+        output="screen",
+    )
+
     teleop_twist_joy_cmd = Node(
         # https://github.com/ros2/teleop_twist_joy
         package="teleop_twist_joy",
@@ -79,6 +86,7 @@ def generate_launch_description():
     ld.add_action(gui_cmd)
     # ld.add_action(ublox_cmd) # We launch the GPS individually right now
     ld.add_action(joy_node_cmd)
+    ld.add_action(mode_switcher_cmd)
     ld.add_action(teleop_twist_joy_cmd)
 
     return ld

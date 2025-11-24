@@ -35,8 +35,6 @@ class MegaWrapper(Node):
     - joy (sensor_msgs/Joy)
     Publishers:
     - ArduinoDebug (std_msgs/String)
-    Clients:
-    - trigger_teleop (std_srvs/Trigger)
     """
 
     def __init__(self):
@@ -57,10 +55,6 @@ class MegaWrapper(Node):
         # self.pub_IR = self.create_publisher(UInt16MultiArray, '/IR', 1)
         self.pub_Debug = self.create_publisher(String, "/ArduinoDebug", 25)
 
-        # Service clients
-        self.teleop_client = self.create_client(Trigger, "trigger_teleop")
-        self.auto_client = self.create_client(Trigger, "trigger_auto")
-
         self.latest_wheel_msg = None
         self.latest_heart_msg = None
         self.latest_elevator_msg = None
@@ -73,10 +67,6 @@ class MegaWrapper(Node):
         self.elevator_speed_multiplier = ELEVATOR_SPEED_CONSTANTS[
             self.elevator_speed_multiplier_idx
         ]
-        
-        # Track START and BACK button states for mode switching
-        self.last_start_button = 0
-        self.last_back_button = 0
 
         self.lock = threading.Lock()
         # Connect to Arduino
@@ -417,72 +407,8 @@ class MegaWrapper(Node):
             self.relay_mega()
 
     def joy_callback(self, msg):
-        # Check if START button (button 7) is pressed for teleop mode
-        if len(msg.buttons) > START:
-            start_button = msg.buttons[START]
-            
-            # Trigger teleop mode on button press (rising edge)
-            if start_button == 1 and self.last_start_button == 0:
-                self.get_logger().info("START button pressed - switching to teleop mode")
-                self.call_trigger_teleop()
-            
-            self.last_start_button = start_button
-        
-        # Check if BACK button (button 6) is pressed for auto mode
-        if len(msg.buttons) > BACK:
-            back_button = msg.buttons[BACK]
-            
-            # Trigger auto mode on button press (rising edge)
-            if back_button == 1 and self.last_back_button == 0:
-                self.get_logger().info("BACK button pressed - switching to auto mode")
-                self.call_trigger_auto()
-            
-            self.last_back_button = back_button
-        
         # Handle elevator controls via D-Pad
         self.elevator_commands(msg)
-    
-    def call_trigger_teleop(self):
-        """Call the trigger_teleop service to switch to teleop mode"""
-        if not self.teleop_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().warn("trigger_teleop service not available")
-            return
-        
-        request = Trigger.Request()
-        future = self.teleop_client.call_async(request)
-        future.add_done_callback(self.teleop_response_callback)
-    
-    def teleop_response_callback(self, future):
-        """Handle response from trigger_teleop service"""
-        try:
-            response = future.result()
-            if response.success:
-                self.get_logger().info("Successfully switched to teleop mode")
-            else:
-                self.get_logger().warn("Failed to switch to teleop mode")
-        except Exception as e:
-            self.get_logger().error(f"Service call failed: {e}")
-    
-    def call_trigger_auto(self):
-        """Call the trigger_auto service to switch to auto mode"""
-        if not self.auto_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().warn("trigger_auto service not available")
-            return
-        
-        request = Trigger.Request()
-        future = self.auto_client.call_async(request)
-        future.add_done_callback(self.auto_response_callback)
-    
-    def auto_response_callback(self, future):
-        """Handle response from trigger_auto service"""
-        try:
-            response = future.result()
-            if response.success:
-                self.get_logger().info("Successfully switched to auto mode")
-            else:
-                self.get_logger().warn("Failed to switch to auto mode")
-        except Exception as e:
-            self.get_logger().error(f"Service call failed: {e}")
 
     def elevator_commands(self, msg: Joy):
         elevator_speed = 0
