@@ -1,3 +1,2 @@
 byu campus
-Xmin, Ymin -111.656152, 40.244083
-Xmax, Ymax -111.641593, 40.258953
+python3 ~/marsrover_4.0/scripts/precache_tiles.py --south 40.244083 --east -111.641593 --north 40.258953 --west -111.656152
