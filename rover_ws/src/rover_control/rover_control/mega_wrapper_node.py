@@ -295,7 +295,11 @@ class MegaWrapper(Node):
                 return -1, ""
 
             # Try reading one byte and decoding it
-            x = self.ser.read(1).decode("ascii").strip()
+            try:
+                x = self.ser.read(1).decode("ascii").strip()
+            except UnicodeDecodeError:
+                self.ser.reset_input_buffer()
+                return -1, ""
 
             # Check if data was read
             if not x:
@@ -338,9 +342,9 @@ class MegaWrapper(Node):
         # Read the rest of the sentence until '*'
         try:
             mega_msg = self.ser.read_until(b"*").decode("ascii").strip()
-        except:
-            self.get_logger().warn(f"Failed to read from serial - Second")
-            self.write_debug("WARNING: Read failure - Second")
+        except UnicodeDecodeError:
+            self.get_logger().warn(f"Failed to decode message from serial - invalid ASCII")
+            self.write_debug("WARNING: Failed to decode message from serial")
             try:
                 self.ser.reset_input_buffer()
             except:
