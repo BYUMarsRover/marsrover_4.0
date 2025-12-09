@@ -79,7 +79,6 @@ namespace rover_behaviors
         int current_cycle_;
         bool moving_forward_;
         double wiggle_distance_;
-        double distance_traveled_;
         
         rclcpp::Duration command_time_allowance_{0, 0};
         rclcpp::Time end_time_;

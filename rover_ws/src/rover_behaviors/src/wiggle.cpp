@@ -42,8 +42,7 @@ namespace rover_behaviors
           wiggle_cycles_(3),
           current_cycle_(0),
           moving_forward_(false),
-          wiggle_distance_(0.3),
-          distance_traveled_(0.0)
+          wiggle_distance_(0.3)
     {
     }
 
@@ -101,8 +100,8 @@ namespace rover_behaviors
         // Initialize wiggle state
         current_cycle_ = 0;
         moving_forward_ = false; // Start with backward movement
-        distance_traveled_ = 0.0;
 
+        // Use time_allowance from command, ignore target as wiggle distance is parameter-based
         command_time_allowance_ = command->time_allowance;
         end_time_ = this->clock_->now() + command_time_allowance_;
 
@@ -153,7 +152,6 @@ namespace rover_behaviors
             // Switch direction
             moving_forward_ = !moving_forward_;
             initial_pose_ = current_pose;
-            distance_traveled_ = 0.0;
             
             // Increment cycle counter when completing a forward-backward pair
             if (moving_forward_)
@@ -161,10 +159,13 @@ namespace rover_behaviors
                 current_cycle_++;
                 RCLCPP_INFO(logger_, "Completed wiggle cycle %d/%d", current_cycle_, wiggle_cycles_);
             }
+            
+            // Reset for next wiggle movement
+            current_distance = 0.0;
         }
 
         // Calculate velocity based on remaining distance in current direction
-        double remaining_distance = wiggle_distance_ - current_distance;
+        double remaining_distance = std::max(0.0, wiggle_distance_ - current_distance);
         double vel = std::sqrt(2 * linear_acc_lim_ * remaining_distance);
         vel = std::min(std::max(vel, min_linear_vel_), max_linear_vel_);
 
