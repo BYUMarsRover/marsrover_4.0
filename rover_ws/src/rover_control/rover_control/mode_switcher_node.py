@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-# Created by GitHub Copilot, Nov 2024
+# Created by GitHub Copilot, reviewed by Spencer Larsen, Nov 2024
 
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
+from std_msgs.msg import String
 from std_srvs.srv import Trigger
 
 BACK, START, POWER = 6, 7, 8  # 6: Switch to auto, 7: Switch to teleop
@@ -17,10 +18,12 @@ class ModeSwitcher(Node):
     When BACK button is pressed, it calls trigger_auto service to enable autonomous mode.
 
     :author: GitHub Copilot
+    :reviewer: Spencer Larsen
     :date: Nov 2024
 
     Subscribers:
     - joy (sensor_msgs/Joy)
+    - drive_mode (std_msgs/String)
     Clients:
     - trigger_teleop (std_srvs/Trigger)
     - trigger_auto (std_srvs/Trigger)
@@ -34,6 +37,11 @@ class ModeSwitcher(Node):
             Joy, "joy", self.joy_callback, 10
         )
 
+        # Subscribe to drive mode feedback
+        self.drive_mode_sub = self.create_subscription(
+            String, "drive_mode", self.drive_mode_callback, 10
+        )
+
         # Service clients for mode switching
         self.teleop_client = self.create_client(Trigger, "trigger_teleop")
         self.auto_client = self.create_client(Trigger, "trigger_auto")
@@ -41,6 +49,9 @@ class ModeSwitcher(Node):
         # Track button states for edge detection (only trigger on button press, not hold)
         self.last_start_button = 0
         self.last_back_button = 0
+
+        # Track current drive mode
+        self.current_mode = "unknown"
 
         self.get_logger().info("Mode switcher node started")
 
@@ -68,6 +79,12 @@ class ModeSwitcher(Node):
                 self.call_trigger_auto()
             
             self.last_back_button = back_button
+
+    def drive_mode_callback(self, msg):
+        """Handle drive mode feedback from drive_mux"""
+        if msg.data != self.current_mode:
+            self.current_mode = msg.data
+            self.get_logger().info(f"Drive mode changed to: {self.current_mode}")
 
     def call_trigger_teleop(self):
         """Call the trigger_teleop service to switch to teleop mode"""
