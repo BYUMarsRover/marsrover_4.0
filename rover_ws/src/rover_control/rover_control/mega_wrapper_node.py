@@ -298,6 +298,8 @@ class MegaWrapper(Node):
             try:
                 x = self.ser.read(1).decode("ascii").strip()
             except UnicodeDecodeError:
+                self.get_logger().warn("Failed to decode initial byte from serial - invalid ASCII")
+                self.write_debug("WARNING: Failed to decode initial byte from serial")
                 self.ser.reset_input_buffer()
                 return -1, ""
 
@@ -347,7 +349,7 @@ class MegaWrapper(Node):
             self.write_debug("WARNING: Failed to decode message from serial")
             try:
                 self.ser.reset_input_buffer()
-            except Exception as e:
+            except serial.SerialException as e:
                 self.write_debug(f"WARNING: Could not flush input buffer: {e}")
             return -1, ""
 
