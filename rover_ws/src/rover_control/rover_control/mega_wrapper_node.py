@@ -347,8 +347,8 @@ class MegaWrapper(Node):
             self.write_debug("WARNING: Failed to decode message from serial")
             try:
                 self.ser.reset_input_buffer()
-            except:
-                self.write_debug("WARNING: Could not flush input buffer")
+            except Exception as e:
+                self.write_debug(f"WARNING: Could not flush input buffer: {e}")
             return -1, ""
 
         # Ensure message does not contain encased messages
