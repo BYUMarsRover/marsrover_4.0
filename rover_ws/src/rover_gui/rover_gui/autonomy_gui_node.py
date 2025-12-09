@@ -656,8 +656,25 @@ class AutonomyGUI(Node, QWidget):
             except subprocess.TimeoutExpired:
                 self.rqt_image_process.kill()
         
+        # Explicitly destroy the action client to clean up DDS resources
+        if hasattr(self, '_action_client'):
+            try:
+                self._action_client.destroy()
+                self.get_logger().info("Action client destroyed successfully")
+            except Exception as e:
+                self.get_logger().warn(f"Error destroying action client: {e}")
+        
         self.ros2_thread.stop()
         self.ros2_thread.wait()
+        
+        # Destroy the ROS2 node to clean up all resources
+        try:
+            self.destroy_node()
+            self.get_logger().info("Node destroyed successfully")
+        except Exception as e:
+            # Node might already be destroyed, just log
+            pass
+        
         event.accept()
 
     def update_button_states(self):
@@ -1031,11 +1048,27 @@ class AutonomyGUI(Node, QWidget):
 
     def _send_mission(self, waypoints_to_send):
         """Internal method to send a mission with a given list of waypoints."""
-        if not self._action_client.wait_for_server(timeout_sec=2.0):
-            self.get_logger().error("Action server not available after 2 seconds!")
+        # Retry with increasing timeouts: 2s, 4s, 6s
+        server_available = False
+        for attempt in range(3):
+            timeout = 2.0 + (attempt * 2.0)
+            self.get_logger().info(f"Waiting for action server (attempt {attempt + 1}/3, timeout: {timeout}s)...")
+            if self._action_client.wait_for_server(timeout_sec=timeout):
+                server_available = True
+                self.get_logger().info("Action server is available!")
+                break
+            else:
+                self.get_logger().warn(f"Attempt {attempt + 1}/3: Action server not available after {timeout}s")
+        
+        if not server_available:
+            self.get_logger().error("Action server not available after 3 attempts! Try restarting ROS2 daemon: 'ros2 daemon stop && ros2 daemon start'")
             self.ui_update_signal.emit(
                 lambda: QMessageBox.critical(
-                    self, "Error", "Action server not available!"
+                    self, 
+                    "Error", 
+                    "Action server not available after 3 attempts!\n\n"
+                    "Try running in a terminal:\n"
+                    "`ros2 daemon stop && ros2 daemon start` and  `ros2 action list` to verify."
                 )
             )
             return

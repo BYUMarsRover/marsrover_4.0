@@ -10,6 +10,7 @@
   <depend>rover_gui</depend>
   <depend>ublox_read_2</depend>
   <depend>joy</depend>
+  <depend>teleop_twist_joy</depend>
   <depend>nav2_bringup</depend>
   <depend>rover_navigation</depend>
   <depend>rover_localization</depend>
