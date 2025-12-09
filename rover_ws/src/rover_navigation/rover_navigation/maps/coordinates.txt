@@ -1,0 +1,4 @@
+To precache the tiles for the following locations, run the command corresponding to the tif file:
+
+byu campus
+python3 ~/marsrover_4.0/scripts/precache_tiles.py --south 40.244083 --east -111.641593 --north 40.258953 --west -111.656152
