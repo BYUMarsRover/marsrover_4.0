@@ -669,10 +669,10 @@ class AutonomyGUI(Node, QWidget):
         
         # Destroy the ROS2 node to clean up all resources
         try:
+            self.get_logger().info("Destroying node...")
             self.destroy_node()
-            self.get_logger().info("Node destroyed successfully")
         except Exception as e:
-            # Node might already be destroyed, just log
+            # Node might already be destroyed, just pass
             pass
         
         event.accept()

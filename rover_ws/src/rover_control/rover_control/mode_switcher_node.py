@@ -6,7 +6,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from std_srvs.srv import Trigger
 
-BACK, START, POWER = 6, 7, 8  # 6: Switch to auto, 7: Switch to teleop
+BACK, START = 6, 7  # 6: Switch to auto, 7: Switch to teleop
 
 
 class ModeSwitcher(Node):

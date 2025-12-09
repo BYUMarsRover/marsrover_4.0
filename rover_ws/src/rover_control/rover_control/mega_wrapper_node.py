@@ -6,7 +6,6 @@ from sensor_msgs.msg import Joy
 
 # from rover_msgs.msg import IWCMotors, Elevator, HeartbeatStatusRover, FPVServo
 
-from std_srvs.srv import Trigger
 import serial
 import time
 import queue
