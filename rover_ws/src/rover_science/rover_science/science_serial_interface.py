@@ -145,7 +145,7 @@ class ScienceSerialInterface(Node):
         self.get_logger().warning("Emergency stop activated, all actuators disabled")
 
     def uvsensor_calibrate(self, uvindex: float):
-        self.get_logger().warn(f"Calibrating UV sensor with index {uvindex}")
+        self.get_logger().warning(f"Calibrating UV sensor with index {uvindex}")
         self.perform_tx_request(SMFL_Builder.get_tx_calibrate_uv_index(uvindex))
 
     def send_file_contents(self, file_path):
@@ -315,7 +315,7 @@ def main(args=None):
     science_serial_interface.get_logger().info('Science Serial Online')
     rclpy.spin(science_serial_interface)
     science_serial_interface.destroy_node()
-    rclpy.shutdown
+    rclpy.shutdown()
 
     if science_serial_interface.arduino:
         science_serial_interface.arduino.close()

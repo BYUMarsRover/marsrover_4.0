@@ -63,7 +63,7 @@ class ScienceRequestManager(Node):
         self.requests = []
 
     def sensor_request(self, msg: Bool):
-        if msg.data == True:
+        if msg.data:
             self.requests.append(self.CalibratedAnalogSensorValues(self, self.pub_analog_sensors))
         else:
             self.requests.append(self.RawAnalogSensorValues(self, self.pub_analog_sensors))
@@ -345,7 +345,7 @@ def main(args=None):
     science_request_manager.get_logger().info('Science Request Manager Online')
     rclpy.spin(science_request_manager)
     science_request_manager.destroy_node()
-    rclpy.shutdown
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
