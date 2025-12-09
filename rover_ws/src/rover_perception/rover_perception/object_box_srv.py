@@ -20,7 +20,7 @@ class ObjectDetectionService(Node):
     Publishers:
     - /annotated_detections_static (sensor_msgs/Image)
     Services:
-    - get_annotated_detection (std_srvs/Trigger) - Publishes annotated image with bounding boxes
+    - /get_annotated_detection (std_srvs/Trigger) - Publishes annotated image with bounding boxes
     """
 
     def __init__(self):
