@@ -12,7 +12,7 @@ class ObjectDetectionService(Node):
     Service node that provides annotated object detection images from ZED camera
 
     :author: Spencer Larsen
-    :date: Nov 2025
+    :date: Nov 2024
 
     Subscribers:
     - /zed/zed_node/left/image_rect_color (sensor_msgs/Image)
