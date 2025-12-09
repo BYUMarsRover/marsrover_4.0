@@ -16,7 +16,7 @@ for _ in range(int(size/hills_heightmax * hills_percent)):
     x = np.random.randint(0, size)
     y = np.random.randint(0, size)
     radius = np.random.randint(10, 30)
-    height = np.random.randint(0.1*hills_heightmax, hills_heightmax)
+    height = np.random.uniform(0.1*hills_heightmax, hills_heightmax)
     
     X, Y = np.ogrid[:size, :size]
     dist = np.sqrt((X - x)**2 + (Y - y)**2)
