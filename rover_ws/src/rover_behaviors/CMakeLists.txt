@@ -52,6 +52,7 @@ set(dependencies
 
 add_library(${library_name} SHARED
   src/custom_spin.cpp
+  src/wiggle.cpp
 )
 
 target_compile_definitions(${library_name} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")

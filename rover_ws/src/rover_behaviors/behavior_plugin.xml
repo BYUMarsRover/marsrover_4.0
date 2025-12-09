@@ -2,6 +2,9 @@
   <class name="rover_behaviors/CustomSpin" type="rover_behaviors::CustomSpin" base_class_type="nav2_core::Behavior">
     <description>Just nav2_behaviors/Spin with collision detections disabled.</description>
   </class>
+  <class name="rover_behaviors/Wiggle" type="rover_behaviors::Wiggle" base_class_type="nav2_core::Behavior">
+    <description>Recovery behavior that performs oscillating movements to help get unstuck.</description>
+  </class>
 </library>
 
 <!-- https://docs.nav2.org/plugin_tutorials/docs/writing_new_behavior_plugin.html -->
