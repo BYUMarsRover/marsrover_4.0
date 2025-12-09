@@ -14,3 +14,6 @@ __pycache__
 .vscode
 .DS_Store
 core
+
+# CodeQL artifacts
+_codeql_*
