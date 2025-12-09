@@ -28,13 +28,13 @@ FUNCTIONALITY:
 import rclpy
 import sys
 from rclpy.node import Node
-from rover_msgs.msg import ScienceActuatorControl, ScienceSerialTxPacket, ScienceSerialRxPacket
+from rover_interfaces.msg import ScienceActuatorControl, ScienceSerialTxPacket, ScienceSerialRxPacket
 from std_msgs.msg import Bool, UInt8MultiArray, Empty, String, Float32
 import serial
 import struct
 import time
-from science.function_mapping.function_map import ScienceModuleFunctionList as SMFL
-from science.function_mapping.function_map import ScienceModuleFunctionListBuilder as SMFL_Builder
+from rover_science.function_mapping.function_map import ScienceModuleFunctionList as SMFL
+from rover_science.function_mapping.function_map import ScienceModuleFunctionListBuilder as SMFL_Builder
 
 # This module uses the Science Module Serial Communication Protocol
 # as definded in the BYU-Mars-Rover-Wiki

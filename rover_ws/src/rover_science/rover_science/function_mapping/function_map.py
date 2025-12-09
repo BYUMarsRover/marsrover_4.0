@@ -4,7 +4,7 @@ import struct
 
 try:
     from ament_index_python.packages import get_package_share_directory
-    from rover_msgs.msg import ScienceSerialTxPacket, ScienceSerialRxPacket
+    from rover_interfaces.msg import ScienceSerialTxPacket, ScienceSerialRxPacket
 except ImportError:
     # Fallback for non-ROS environments
     def get_package_share_directory(package_name):

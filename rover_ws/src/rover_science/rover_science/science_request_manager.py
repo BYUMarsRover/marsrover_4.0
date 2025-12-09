@@ -22,7 +22,7 @@ FUNCTIONALITY:
 
 import rclpy
 from rclpy.node import Node
-from rover_msgs.msg import ScienceSerialRxPacket, ScienceSerialTxPacket, ScienceSensorValues, ScienceSpectroData, ScienceUvData, ScienceActuatorState
+from rover_interfaces.msg import ScienceSerialRxPacket, ScienceSerialTxPacket, ScienceSensorValues, ScienceSpectroData, ScienceUvData, ScienceActuatorState
 from std_msgs.msg import Empty, String, Bool, UInt8, Float32
 from rover_science.function_mapping.function_map import ScienceModuleFunctionList as SMFL
 from rover_science.function_mapping.function_map import ScienceModuleFunctionListBuilder as SMFL_Builder

@@ -3,7 +3,7 @@
 from PyQt5 import QtWidgets, uic, QtGui
 from python_qt_binding.QtCore import QObject, Signal
 import rclpy
-from rover_msgs.msg import ScienceSerialTxPacket
+from rover_interfaces.msg import ScienceSerialTxPacket
 from std_msgs.msg import UInt8MultiArray, String
 from rclpy.node import Node
 from ament_index_python.packages import get_package_share_directory

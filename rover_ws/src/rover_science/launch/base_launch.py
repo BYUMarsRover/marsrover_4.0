@@ -9,13 +9,13 @@ def generate_launch_description():
     return LaunchDescription([
 
         Node(
-            package="science",
+            package="rover_science",
             executable="science_GUI",
             name="science_GUI",
             output="screen"
         ),
         Node(
-            package="science",
+            package="rover_science",
             executable="science_data_saver",
             name="science_data_saver",
             output="screen"

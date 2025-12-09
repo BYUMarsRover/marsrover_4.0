@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 import science.response_gui.resources
 from python_qt_binding.QtCore import QObject, Signal
 import rclpy
-from rover_msgs.msg import ScienceSerialRxPacket
+from rover_interfaces.msg import ScienceSerialRxPacket
 from std_msgs.msg import UInt8MultiArray
 from rclpy.node import Node
 from ament_index_python.packages import get_package_share_directory
@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import datetime
 import random
-from science.function_mapping.function_map import ScienceModuleFunctionList as SMFL
+from rover_science.function_mapping.function_map import ScienceModuleFunctionList as SMFL
 
 import os
 import sys

@@ -7,10 +7,10 @@ from python_qt_binding.QtCore import QObject, Signal
 import rclpy
 from rclpy.node import Node
 from ament_index_python.packages import get_package_share_directory
-from science.function_mapping.function_map import ScienceModuleFunctionListBuilder as SMFL_Builder
-from science.function_mapping.function_map import ACTUATOR_COUNT, ACTUATOR_INDEX_PROBE, ACTUATOR_INDEX_AUGER, ACTUATOR_INDEX_PRIMARY_CACHE_DOOR, ACTUATOR_INDEX_SECONDARY_CACHE, ACTUATOR_INDEX_SECONDARY_CACHE_DOOR, ACTUATOR_INDEX_DRILL
+from rover_science.function_mapping.function_map import ScienceModuleFunctionListBuilder as SMFL_Builder
+from rover_science.function_mapping.function_map import ACTUATOR_COUNT, ACTUATOR_INDEX_PROBE, ACTUATOR_INDEX_AUGER, ACTUATOR_INDEX_PRIMARY_CACHE_DOOR, ACTUATOR_INDEX_SECONDARY_CACHE, ACTUATOR_INDEX_SECONDARY_CACHE_DOOR, ACTUATOR_INDEX_DRILL
 from std_msgs.msg import UInt8, Bool, Empty, String
-from rover_msgs.msg import ScienceActuatorState, ScienceActuatorControl, ScienceSerialTxPacket
+from rover_interfaces.msg import ScienceActuatorState, ScienceActuatorControl, ScienceSerialTxPacket
 
 import os
 import sys

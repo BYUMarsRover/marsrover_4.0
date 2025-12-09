@@ -3,9 +3,9 @@
 from PyQt5 import QtWidgets, uic, QtGui
 from python_qt_binding.QtCore import QObject, Signal
 import rclpy
-from rover_msgs.msg import ScienceSerialTxPacket
+from rover_interfaces.msg import ScienceSerialTxPacket
 from rclpy.node import Node
-from science.debug_gui.debug_widgits import *
+from rover_science.debug_gui.debug_widgits import *
 
 class science_debug_GUI(Node):
     def __init__(self):

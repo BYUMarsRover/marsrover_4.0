@@ -1,9 +1,9 @@
 import struct
 from PyQt5 import QtWidgets, uic, QtGui
-from science.function_mapping.function_map import ScienceModuleFunctionList as SMFL
-from science.function_mapping.function_map import ScienceModuleFunctionListBuilder as SMFL_Builder
+from rover_science.function_mapping.function_map import ScienceModuleFunctionList as SMFL
+from rover_science.function_mapping.function_map import ScienceModuleFunctionListBuilder as SMFL_Builder
 from ament_index_python.packages import get_package_share_directory
-from rover_msgs.msg import ScienceSerialTxPacket
+from rover_interfaces.msg import ScienceSerialTxPacket
 import os
 import sys
 

@@ -9,7 +9,7 @@ import math
 import argparse
 from csv import DictReader
 import re
-from science.science.function_mapping.function_map import ScienceModuleFunctionList as SMFL
+from rover_science.science.function_mapping.function_map import ScienceModuleFunctionList as SMFL
 
 def build_config_binary(config_file, fields_file):
     # Load the list from the fields file

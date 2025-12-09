@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 import rclpy
-from rover_msgs.msg import ScienceSensorValues, ScienceSaveSensor, ScienceSaveNotes, ScienceSaveFAD, ScienceSaveSpectro
+from rover_interfaces.msg import ScienceSensorValues, ScienceSaveSensor, ScienceSaveNotes, ScienceSaveFAD, ScienceSaveSpectro
 from rclpy.node import Node
 from ament_index_python.packages import get_package_share_directory
 
