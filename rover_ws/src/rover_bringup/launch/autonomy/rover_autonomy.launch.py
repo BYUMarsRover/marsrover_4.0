@@ -9,7 +9,6 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_xml.launch_description_sources import XMLLaunchDescriptionSource
 from launch.conditions import IfCondition, UnlessCondition
 from nav2_common.launch import RewrittenYaml
-from launch.conditions import UnlessCondition, IfCondition
 
 
 def generate_launch_description():
