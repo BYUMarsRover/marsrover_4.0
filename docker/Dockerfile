@@ -77,6 +77,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-zed-msgs \
     # Open-source robotic arm manipulation platform - Nelson Durrant, Jun 2025
     ros-humble-moveit \
+    # Joy package for science control - Jacob Gunnell, Sept 2025
+    ros-humble-joy-linux \
     && rm -rf /var/lib/apt/lists/*
 
 # Install architecture-specific ROS packages
@@ -127,11 +129,15 @@ USER $NAME
 COPY --chown=$NAME:$NAME firmware /home/$NAME/firmware
 RUN pio pkg install --project-dir /home/$NAME/firmware/mega_pio \
     && pio pkg install --project-dir /home/$NAME/firmware/nano_pio \
+    && pio pkg install --project-dir /home/$NAME/firmware/nano_science_pio \
     && rm -rf /home/$NAME/firmware
 
 # Set up automatic ROS2 sourcing and colorized output - Nelson Durrant, Oct 2024
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc \
     && echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ~/.bashrc \
     && touch ~/.hushlogin
+
+# Set tmux to use color - Jacob Gunnell, Sept 2025
+RUN echo "set -g default-terminal \"screen-256color\"" >> ~/.tmux.conf
 
 CMD ["bash"]
