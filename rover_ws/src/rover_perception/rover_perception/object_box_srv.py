@@ -6,7 +6,23 @@ from std_srvs.srv import Trigger
 from cv_bridge import CvBridge
 import cv2
 
+
 class ObjectDetectionService(Node):
+    """
+    Service node that provides annotated object detection images from ZED camera
+
+    :author: Spencer Larsen
+    :date: Nov 2024
+
+    Subscribers:
+    - /zed/zed_node/left/image_rect_color (sensor_msgs/Image)
+    - /zed/zed_node/obj_det/objects (zed_msgs/ObjectsStamped)
+    Publishers:
+    - /annotated_detections_static (sensor_msgs/Image)
+    Services:
+    - /get_annotated_detection (std_srvs/Trigger) - Publishes annotated image with bounding boxes
+    """
+
     def __init__(self):
         super().__init__('object_detection_service')
         
