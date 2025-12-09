@@ -12,6 +12,8 @@ The `install_soft_shutdown_switch.sh` script sets up a systemd service that moni
 - Triggers a safe system shutdown when pin 7 goes high
 - Runs as a systemd service that starts automatically on boot
 - Automatically restarts if the monitoring process fails
+- Includes error handling for GPIO export failures and pin unavailability
+- Prevents duplicate GPIO exports if the pin is already in use
 
 ### Installation
 
