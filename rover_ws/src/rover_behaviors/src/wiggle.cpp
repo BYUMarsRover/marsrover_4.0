@@ -101,7 +101,8 @@ namespace rover_behaviors
         current_cycle_ = 0;
         moving_forward_ = false; // Start with backward movement
 
-        // Use time_allowance from command, ignore target as wiggle distance is parameter-based
+        // Wiggle behavior uses parameter-based distances rather than the BackUpAction target
+        // The time_allowance is used to prevent infinite wiggle attempts
         command_time_allowance_ = command->time_allowance;
         end_time_ = this->clock_->now() + command_time_allowance_;
 
@@ -149,7 +150,8 @@ namespace rover_behaviors
         // Check if we've completed the current wiggle movement
         if (current_distance >= wiggle_distance_)
         {
-            // Switch direction
+            // Switch direction and reset reference pose
+            // This automatically resets distance calculation on next cycle
             moving_forward_ = !moving_forward_;
             initial_pose_ = current_pose;
             
@@ -159,9 +161,6 @@ namespace rover_behaviors
                 current_cycle_++;
                 RCLCPP_INFO(logger_, "Completed wiggle cycle %d/%d", current_cycle_, wiggle_cycles_);
             }
-            
-            // Reset for next wiggle movement
-            current_distance = 0.0;
         }
 
         // Calculate velocity based on remaining distance in current direction
