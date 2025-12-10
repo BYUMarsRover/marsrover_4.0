@@ -35,8 +35,6 @@ class MegaWrapper(Node):
     - joy (sensor_msgs/Joy)
     Publishers:
     - ArduinoDebug (std_msgs/String)
-    Clients:
-    - trigger_teleop (std_srvs/Trigger)
     """
 
     def __init__(self):
@@ -56,9 +54,6 @@ class MegaWrapper(Node):
         # PUBLISHERS
         # self.pub_IR = self.create_publisher(UInt16MultiArray, '/IR', 1)
         self.pub_Debug = self.create_publisher(String, "/ArduinoDebug", 25)
-
-        # Service clients
-        self.client = self.create_client(Trigger, "trigger_teleop")
 
         self.latest_wheel_msg = None
         self.latest_heart_msg = None
@@ -412,16 +407,10 @@ class MegaWrapper(Node):
             self.relay_mega()
 
     def joy_callback(self, msg):
-        # Assuming the left joystick is represented by axes 0 and 1
-        left_x = msg.axes[0]  # Left joystick horizontal
-        left_y = msg.axes[1]  # Left joystick vertical
-
-        self.get_logger().info(f"Left Joystick - X: {left_x}, Y: {left_y}")
-
-        # create a case where it calls the trigger_telop when the enable button is pressed
+        # Handle elevator controls via D-Pad
+        self.elevator_commands(msg)
 
     def elevator_commands(self, msg: Joy):
-
         elevator_speed = 0
         elevator_direction = 0
 
@@ -469,35 +458,6 @@ class MegaWrapper(Node):
             self.last_right_dpad = False
 
         self.send_elevator(elevator_speed, elevator_direction)
-
-        self.check_drive_enabled(msg)
-
-    def check_drive_enabled(self, msg: Joy):
-        start_button = msg.buttons[START]
-        back_button = msg.buttons[BACK]
-
-        if back_button:
-            # self.drive_enabled = False
-            # TODO: HANDLE DRIVE DISABLED
-            self.get_logger().info("Drive disabled NOT AVAILABLE")
-        elif start_button:
-            self.drive_enabled = True
-            request = Trigger.Request()
-            self.future = self.client.call_async(request)
-            self.get_logger().info("Drive enabled")
-
-            # Add a callback for when the future completes
-            self.future.add_done_callback(self.service_response_callback)
-
-    def service_response_callback(self, future):
-        try:
-            response = future.result()
-            if response is not None:
-                self.get_logger().info("Response: {}".format(response.message))
-            else:
-                self.get_logger().error("Service call failed with no response.")
-        except Exception as e:
-            self.get_logger().error(f"Exception while calling service: {e}")
 
 
 def main(args=None):

@@ -27,6 +27,7 @@ setup(
             'drive_mux = rover_control.drive_mux_node:main',
             'mega_wrapper = rover_control.mega_wrapper_node:main',
             'nano_wrapper = rover_control.nano_wrapper_node:main',
+            'mode_switcher = rover_control.mode_switcher_node:main',
         ],
     },
 )

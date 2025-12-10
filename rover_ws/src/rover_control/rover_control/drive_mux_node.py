@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import Int8
+from std_msgs.msg import Int8, String
 from std_srvs.srv import Trigger
 from geometry_msgs.msg import Twist
 
@@ -24,6 +24,7 @@ class DriveMux(Node):
     Publishers:
     - cmd_vel_mux (geometry_msgs/Twist)
     - cmd_led (std_msgs/Int8)
+    - drive_mode (std_msgs/String)
     Services:
     - trigger_teleop (std_srvs/Trigger)
     - trigger_auto (std_srvs/Trigger)
@@ -52,6 +53,7 @@ class DriveMux(Node):
 
         self.cmd_vel_mux_pub = self.create_publisher(Twist, "cmd_vel_mux", 10)
         self.cmd_led_pub = self.create_publisher(Int8, "cmd_led", 10)
+        self.drive_mode_pub = self.create_publisher(String, "drive_mode", 10)
         self.create_timer(0.5, self.led_timer_callback)
 
         self.state = "teleop"
@@ -76,7 +78,7 @@ class DriveMux(Node):
         if self.state == "teleop":
             self.cmd_vel_mux_pub.publish(msg)
         else:
-            self.get_logger().warn("Received cmd_vel_teleop while not in teleop state")
+            self.get_logger().warn("Received cmd_vel_teleop while not in teleop state", throttle_duration_sec=1.0)
 
     def teleop_service_callback(self, request, response):
         """
@@ -85,6 +87,7 @@ class DriveMux(Node):
 
         self.state = "teleop"
         self.get_logger().info("Switched to teleop state")
+        self.drive_mode_pub.publish(String(data="teleop"))
         response.success = True
         return response
 
@@ -95,6 +98,7 @@ class DriveMux(Node):
 
         self.state = "auto"
         self.get_logger().info("Switched to auto state")
+        self.drive_mode_pub.publish(String(data="auto"))
         response.success = True
         return response
 
@@ -105,6 +109,7 @@ class DriveMux(Node):
 
         self.state = "arrival"
         self.get_logger().info("Switched to arrival state")
+        self.drive_mode_pub.publish(String(data="arrival"))
         response.success = True
         return response
 

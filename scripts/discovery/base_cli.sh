@@ -19,6 +19,8 @@ fi
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 export FASTRTPS_DEFAULT_PROFILES_FILE=$script_dir"/config/base_super_client_config.xml"
+# This makes sure ROS2 uses UDPv4 only and not standard Shared Memory transport
+export FASTDDS_BUILTIN_TRANSPORTS=UDPv4 
 
 ros2 daemon stop
 ros2 daemon start
