@@ -300,6 +300,10 @@ class MegaWrapper(Node):
             except UnicodeDecodeError:
                 self.ser.reset_input_buffer()
                 return -1, ""
+            except:
+                self.get_logger().warn("Failed to read from serial port.")
+                self.write_debug("WARNING: Failed to read from serial port")
+                return -1, ""
 
             # Check if data was read
             if not x:
@@ -349,6 +353,10 @@ class MegaWrapper(Node):
                 self.ser.reset_input_buffer()
             except:
                 self.write_debug("WARNING: Could not flush input buffer")
+            return -1, ""
+        except:
+            self.get_logger().warn("Failed to read complete message from serial port.")
+            self.write_debug("WARNING: Failed to read complete message from serial port")
             return -1, ""
 
         # Ensure message does not contain encased messages
