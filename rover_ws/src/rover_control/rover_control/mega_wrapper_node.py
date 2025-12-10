@@ -354,6 +354,10 @@ class MegaWrapper(Node):
             except:
                 self.write_debug("WARNING: Could not flush input buffer")
             return -1, ""
+                self.ser.reset_input_buffer()
+            except:
+                self.write_debug("WARNING: Could not flush input buffer")
+            return -1, ""
         except:
             self.get_logger().warn("Failed to read complete message from serial port.")
             self.write_debug("WARNING: Failed to read complete message from serial port")
