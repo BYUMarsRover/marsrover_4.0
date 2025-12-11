@@ -1,24 +1,22 @@
 {
     "legs": [
         {
-            "name": "gps1_sim",
+            "name": "hanksville_wp1",
             "type": "gps",
-            "latitude": 38.162923,
-            "longitude": -122.454987
+            "latitude": 38.4060,
+            "longitude": -110.7915
         },
         {
-            "name": "aruco1_sim",
-            "type": "aruco",
-            "latitude": 38.162958,
-            "longitude": -122.455412,
-            "tag_id": 1
+            "name": "hanksville_wp2",
+            "type": "gps",
+            "latitude": 38.4065,
+            "longitude": -110.7905
         },
         {
-            "name": "mallet_sim",
-            "type": "obj",
-            "latitude": 38.162635,
-            "longitude": -122.454902,
-            "object": "mallet"
+            "name": "hanksville_wp3",
+            "type": "gps",
+            "latitude": 38.4055,
+            "longitude": -110.7900
         }
     ]
 }
